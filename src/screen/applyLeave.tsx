@@ -16,26 +16,13 @@ import { Button, Select, Radio, HStack, Input, VStack, Box } from 'native-base';
 import Sidebar from '../layout/SideBar';
 import { Calendar } from 'react-native-calendars';
 import { useAuth } from '../context/AuthContext';
-import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
-import * as DocumentPicker from 'expo-document-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import Header from '../layout/header';
 
 
-const LeaveHeader = ({ toggleDrawer }) => {
-  return (
-    <View>
-      <Pressable onPress={toggleDrawer}>
-        <Image
-          source={require('../../assets/Images/menu.png')}
-          height={10}
-          width={20}
-          style={styles.menuImg}
-        />
-      </Pressable>
-      <View style={styles.borderLine}></View>
-    </View>
-  );
-};
+
+
 
 
 const AddLeave = ({ navigation }) => {
@@ -60,6 +47,7 @@ const AddLeave = ({ navigation }) => {
   console.log('noonType: ', noonType);
   const [expandedPreview, setExpandedPreview] = useState(false);
   const [imageBase64, setImageBase64] = useState(null);
+  console.log('imageBase64: ', imageBase64);
   const [imageUri, setImageUri] = useState(null);
   const [imageName, setImageName] = useState(null);
   const [formStatus, setFormStatus] = useState(null);
@@ -86,6 +74,50 @@ const AddLeave = ({ navigation }) => {
 
   const toggleExpandedPreview = () => {
     setExpandedPreview(!expandedPreview);
+  };
+
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  useEffect(() => {
+    checkCameraPermission();
+  }, []);
+
+  const checkCameraPermission = async () => {
+    const result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
+    if (result === RESULTS.DENIED) {
+      requestCameraPermission();
+    }
+  };
+
+  const requestCameraPermission = async () => {
+    const result = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+    if (result === RESULTS.GRANTED) {
+      console.log('Photo library permission granted');
+    } else {
+      console.log('Photo library permission denied');
+    }
+  };
+
+  const openImagePicker = () => {
+    launchImageLibrary({ mediaType: 'mixed', includeBase64: true }, (response) => {
+      if (response.didCancel) {
+        console.log('Image picker was canceled');
+      } else if (response.error) {
+        console.error('Image picker error: ', response.error);
+      } else {
+        const uri = response.assets?.[0]?.uri || response.uri;
+        const base64 = response.assets?.[0]?.base64 || response.base64;
+        //   const uriParts = uri.split('/');
+        //   const imageName = uriParts[uriParts.length - 1];
+
+        //   setImageName( imageName );
+        setImageBase64(base64)
+        setSelectedImage(uri);
+
+        // Now you can use the 'base64' variable for your purposes
+        console.log('Base64 representation of the selected image:', base64);
+      }
+    });
   };
 
   const handleDayPress = (day) => {
@@ -217,51 +249,7 @@ const AddLeave = ({ navigation }) => {
     return dayCounts;
   };
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (status !== 'granted') {
-      alert('Permission to access the media library is required!');
-      return;
-    }
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-
-    if (!result.cancelled) {
-      const imageUri = result.uri;
-
-      // Read and encode the image to base64 using Expo FileSystem
-      FileSystem.readAsStringAsync(imageUri, { encoding: FileSystem.EncodingType.Base64 })
-        .then((base64Data) => {
-          console.log('base64Data: ', base64Data);
-
-          // Use the base64 data as needed (e.g., send it to an API or display it in your app)
-          console.log('Base64 image data:', base64Data);
-
-          // Store the image URI and base64 data in state
-          setImageUri(imageUri);
-          setImageBase64(base64Data);
-
-          // Now, you can work with imageBase64 safely
-          console.log('imageBase64: ', imageBase64);
-
-          // Get the image name from the URI
-          const uriParts = imageUri.split('/');
-          const name = uriParts[uriParts.length - 1];
-
-          // Store the image name in a state variable
-          setImageName(name);
-        })
-        .catch((error) => {
-          console.error('Error converting image to base64:', error);
-        });
-    }
-  };
 
   function formatDate(dateString) {
     const parts = dateString.split('-');
@@ -408,7 +396,7 @@ const AddLeave = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LeaveHeader toggleDrawer={toggleDrawer} />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }} // Set flex to 1 to allow the content to expand
@@ -418,6 +406,11 @@ const AddLeave = ({ navigation }) => {
           keyboardShouldPersistTaps="handled" // Allow scrolling even when keyboard is visible
         >
           <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
+          <View>
+
+            <Header toggleDrawer={toggleDrawer} />
+
+          </View>
           <Text style={styles.moduleHea}>add leave</Text>
           {/* <Text>Selected : {selectedDocumentName}</Text>
           <Text>Type : {selectedDocumentType}</Text>
@@ -622,7 +615,7 @@ const AddLeave = ({ navigation }) => {
               <Text style={styles.label}>Description</Text>
               <Input variant="underlined" type="text" />
             </View>
-            {imageUri && (
+            {selectedImage && (
               <><Text style={{ marginTop: 5, alignSelf: "center" }}>{imageName}</Text>
 
                 <TouchableOpacity>
@@ -631,16 +624,15 @@ const AddLeave = ({ navigation }) => {
             )}
 
             {expandedPreview && (
-              <View>
-                <Image source={{ uri: imageUri }} style={{ width: 200, height: 300, borderWidth: 1, borderColor: "gray", borderRadius: 8, marginTop: 5, alignSelf: "center" }} />
-
+              <View style={styles.selectedImageContainer}>
+                <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
               </View>
             )}
             {formStatus === "Succcess" ? (
               <Text style={styles.succMsg}>Leave Applied Successfully</Text>
             ) : null}
             <View style={styles.finalBtn} >
-              <Button style={{ backgroundColor: "#054582" }} alignSelf={"center"}  onPress={pickImage} >
+              <Button onPress={openImagePicker} style={{ backgroundColor: "#054582" }} alignSelf={"center"}   >
                 <Text style={{ color: "white" }}>UPLOAD PHOTO</Text>
               </Button>
               <Button onPress={leaveUpdate} style={{ backgroundColor: "#054582" }} alignSelf={"center"} >
@@ -765,9 +757,19 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-evenly",
-    marginTop:"2%",
- 
+    marginTop: "2%",
+
+  },
+  selectedImageContainer: {
+    alignItems: 'center',
+  },
+  selectedImage: {
+    width: 200,
+    height: 200,
+    marginTop: 20,
   }
 });
 
 export default AddLeave;
+
+

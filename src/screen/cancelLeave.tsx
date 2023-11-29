@@ -15,23 +15,10 @@ import {
 import { Button, Select, Radio, HStack, Input, VStack, Box } from 'native-base';
 import Sidebar from '../layout/SideBar';
 import { useAuth } from '../context/AuthContext';
+import Header from '../layout/header';
 
 
-const LeaveHeader = ({ toggleDrawer }) => {
-    return (
-        <View>
-            <Pressable onPress={toggleDrawer}>
-                <Image
-                    source={require('../../assets/Images/menu.png')}
-                    height={10}
-                    width={20}
-                    style={styles.menuImg}
-                />
-            </Pressable>
-            <View style={styles.borderLine}></View>
-        </View>
-    );
-};
+
 
 export default function cancelLeave({ navigation }) {
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -178,7 +165,7 @@ export default function cancelLeave({ navigation }) {
     return (
         <>
             <View style={styles.container}>
-                <LeaveHeader toggleDrawer={toggleDrawer} />
+
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ flex: 1 }} // Set flex to 1 to allow the content to expand
@@ -188,6 +175,11 @@ export default function cancelLeave({ navigation }) {
                         keyboardShouldPersistTaps="handled" // Allow scrolling even when keyboard is visible
                     >
                         <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
+                        <View>
+
+                            <Header toggleDrawer={toggleDrawer} />
+
+                        </View>
                         <Text style={styles.moduleHea}>cancel leave</Text>
                         <View>
                             <Text style={styles.label}>Select Month</Text>

@@ -3,27 +3,15 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Image, Dimensions, Keybo
 import Sidebar from '../layout/SideBar';
 import { Box, FormControl, Input, Select, Button, HStack } from 'native-base';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import Header from '../layout/header';
 
 
 
 
-const LeaveHeader = ({ toggleDrawer }) => {
-    return (
-        <View>
-            <Pressable onPress={toggleDrawer}>
-                <Image
-                    source={require('../../assets/Images/menu.png')}
-                    height={10}
-                    width={20}
-                    style={styles.menuImg}
-                />
-            </Pressable>
-            <View style={styles.borderLine}></View>
-        </View>
-    );
-};
+
+
 
 const ClaimPage = ({ navigation }) => {
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -45,6 +33,7 @@ const ClaimPage = ({ navigation }) => {
     const [imageBase64, setImageBase64] = useState(null);
 
 
+
     const onDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
         setShowDatePicker(Platform.OS === 'ios');
@@ -54,69 +43,60 @@ const ClaimPage = ({ navigation }) => {
     const showDatepicker = () => {
         setShowDatePicker(true);
     };
-    useEffect(() => {
-        (async () => {
-            if (Platform.OS !== 'web') {
-                const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                if (status !== 'granted') {
-                    alert('Permission to access media library is required!');
-                }
-            }
-        })();
-    }, []);
 
-    const pickImage = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-        if (status !== 'granted') {
-          alert('Permission to access the media library is required!');
-          return;
-        }
-      
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          aspect: [1, 1],
-          quality: 1,
-        });
-      
-        if (!result.cancelled) {
-          const imageUri = result.uri;
-      
-          // Read and encode the image to base64 using Expo FileSystem
-          FileSystem.readAsStringAsync(imageUri, { encoding: FileSystem.EncodingType.Base64 })
-            .then((base64Data) => {
-              console.log('base64Data: ', base64Data);
-      
-              // Use the base64 data as needed (e.g., send it to an API or display it in your app)
-              console.log('Base64 image data:', base64Data);
-      
-              // Store the image URI and base64 data in state
-              setImageUri(imageUri);
-              setImageBase64(base64Data);
-      
-              // Now, you can work with imageBase64 safely
-              console.log('imageBase64: ', imageBase64);
-      
-              // Get the image name from the URI
-              const uriParts = imageUri.split('/');
-              const name = uriParts[uriParts.length - 1];
-      
-              // Store the image name in a state variable
-              setImageName(name);
-            })
-            .catch((error) => {
-              console.error('Error converting image to base64:', error);
-            });
-        }
-      };
-      
-      
+
+
+
+
     const toggleExpandedPreview = () => {
         setExpandedPreview(!expandedPreview);
     };
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    useEffect(() => {
+        checkCameraPermission();
+    }, []);
+
+    const checkCameraPermission = async () => {
+        const result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
+        if (result === RESULTS.DENIED) {
+            requestCameraPermission();
+        }
+    };
+
+    const requestCameraPermission = async () => {
+        const result = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+        if (result === RESULTS.GRANTED) {
+            console.log('Photo library permission granted');
+        } else {
+            console.log('Photo library permission denied');
+        }
+    };
+
+    const openImagePicker = () => {
+        launchImageLibrary({ mediaType: 'mixed', includeBase64: true }, (response) => {
+            if (response.didCancel) {
+                console.log('Image picker was canceled');
+            } else if (response.error) {
+                console.error('Image picker error: ', response.error);
+            } else {
+                const uri = response.assets?.[0]?.uri || response.uri;
+                const base64 = response.assets?.[0]?.base64 || response.base64;
+                //   const uriParts = uri.split('/');
+                //   const imageName = uriParts[uriParts.length - 1];
+
+                //   setImageName( imageName );
+                setImageBase64(base64)
+                setSelectedImage(uri);
+
+                // Now you can use the 'base64' variable for your purposes
+                console.log('Base64 representation of the selected image:', base64);
+            }
+        });
+    };
     return (
         <View style={styles.container}>
-            <LeaveHeader toggleDrawer={toggleDrawer} />
+            =
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
@@ -126,7 +106,12 @@ const ClaimPage = ({ navigation }) => {
                     keyboardShouldPersistTaps="handled"
                 >
                     <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
-                    <Text style={styles.moduleHea}>Claim</Text>
+                    <View>
+
+                        <Header toggleDrawer={toggleDrawer} />
+
+                    </View>
+                    <Text style={styles.moduleHea}>Claim page</Text>
                     <Box alignSelf={"center"}>
                         <FormControl mt={2}>
                             <View >
@@ -229,23 +214,23 @@ const ClaimPage = ({ navigation }) => {
                         </FormControl>
 
 
-                        {imageUri && (
-                            <><Text style={{ marginTop: 5, alignSelf: "center"}}>{imageName}</Text>
-                            
-                            <TouchableOpacity>
-                                <Text onPress={toggleExpandedPreview} style={{ marginTop: 5, alignSelf: "center", textDecorationLine: 'underline',color:"green" }}>Preview</Text>
-                            </TouchableOpacity></>
+                        {selectedImage && (
+                            <><Text style={{ marginTop: 5, alignSelf: "center" }}>{imageName}</Text>
+
+                                <TouchableOpacity>
+                                    <Text onPress={toggleExpandedPreview} style={{ marginTop: 5, alignSelf: "center", textDecorationLine: 'underline', color: "green" }}>Preview</Text>
+                                </TouchableOpacity></>
                         )}
 
                         {expandedPreview && (
-                            <View>
-                                <Image source={{ uri: imageUri }} style={{ width: 200, height: 300, borderWidth: 1, borderColor: "gray", borderRadius: 8, marginTop: 5, alignSelf: "center" }} />
-                               
+
+                            <View style={styles.selectedImageContainer}>
+                                <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
                             </View>
+
                         )}
-                        <HStack  space={3} mt={4}>
-                            <Button style={{ backgroundColor: "#054582" }} alignSelf={"center"} width={150} onPress={pickImage} >
-                                <Text style={{ color: "white" }}>UPLOAD PHOTO</Text>
+                        <HStack space={3} mt={4}>
+                            <Button onPress={openImagePicker} style={{ backgroundColor: "#054582" }} alignSelf={"center"} width={150} >UPLOAD
                             </Button>
                             <Button style={{ backgroundColor: "#054582" }} alignSelf={"center"} width={150} >
                                 <Text style={{ color: "white" }}>SUBMIT</Text>
@@ -307,6 +292,14 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         color: "#000",
         height: 70
+    },
+    selectedImageContainer: {
+        alignItems: 'center',
+    },
+    selectedImage: {
+        width: 200,
+        height: 200,
+        marginTop: 20,
     },
 
 });

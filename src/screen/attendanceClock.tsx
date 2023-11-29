@@ -1,31 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, Image, Pressable, Platform, TouchableOpacity } from 'react-native';
 import { Button, HStack, VStack } from "native-base";
-import * as Location from 'expo-location';
+import Geolocation from '@react-native-community/geolocation';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+
 
 import Sidebar from '../layout/SideBar';
 import { useAuth } from '../context/AuthContext';
+import Header from '../layout/header';
 
 const AttendanceClockScreen = ({ navigation }) => {
     const { email, password, userStatus } = useAuth();
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
     const [showAll, setShowAll] = useState(false);
-    const LeaveHeader = ({ toggleDrawer }) => {
-        return (
-            <View>
-                <Pressable onPress={toggleDrawer}>
-                    <Image
-                        source={require('../../assets/Images/menu.png')}
-                        height={10}
-                        width={20}
-                        style={styles.menuImg}
-                    />
-                </Pressable>
-                <View style={styles.borderLine}></View>
-            </View>
-        );
-    };
+
     const currentDate = new Date();
     const timeUpdate = async () => {
 
@@ -73,9 +62,7 @@ const AttendanceClockScreen = ({ navigation }) => {
 
     const initialRowCount = 3;
 
-    const handleCapturePicture = (photoUri) => {
-        setCapturedPhoto(photoUri);
-    };
+
 
 
 
@@ -125,7 +112,7 @@ const AttendanceClockScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <LeaveHeader toggleDrawer={toggleDrawer} />
+
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardAvoidingContainer}
@@ -133,6 +120,11 @@ const AttendanceClockScreen = ({ navigation }) => {
                 <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollContainer}>
 
                     <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
+                    <View>
+
+                        <Header toggleDrawer={toggleDrawer} />
+
+                    </View>
                     <Text style={styles.moduleHea}>attendance clock</Text>
                     <View style={styles.content}>
                         <View
@@ -156,7 +148,7 @@ const AttendanceClockScreen = ({ navigation }) => {
                                 {capturedPhoto ? (
                                     <></>
 
-                                ) : <Button style={styles.checkIn} onPress={() => navigation.navigate('CameraScreen', { onPictureTaken: handleCapturePicture })} >
+                                ) : <Button style={styles.checkIn} onPress={() => navigation.navigate('CameraScreen')}  >
 
                                     <Text style={styles.checkInTxt}>Clock In</Text>
                                 </Button>}
@@ -164,9 +156,7 @@ const AttendanceClockScreen = ({ navigation }) => {
                         </View>
 
 
-
                         <LocationScreen />
-
 
                         {capturedPhoto && (
                             <View style={styles.preview}>
@@ -277,6 +267,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 20,
         fontWeight: "bold",
+        color: "#000"
 
     },
     currentDate: {
@@ -291,7 +282,7 @@ const styles = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        gap:2,
+        gap: 2,
 
 
     },
@@ -360,42 +351,61 @@ const styles = StyleSheet.create({
 export default AttendanceClockScreen;
 
 
+
+
+
+
+
+
+
+
+
+
+
 const LocationScreen = () => {
     const [location, setLocation] = useState(null);
-    const [locationName, setLocationName] = useState(null);
+    const [address, setAddress] = useState('');
     const [error, setError] = useState(null);
-    const [isLoadingLocationName, setIsLoadingLocationName] = useState(true);
 
     useEffect(() => {
         const fetchLocation = async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                setError('Permission to access location was denied');
-                return;
-            }
-
             try {
-                let location = await Location.getCurrentPositionAsync({});
-                setLocation(location.coords);
+                Geolocation.getCurrentPosition(
+                    position => {
+                        console.log('Location Success:', position);
+                        setLocation(position.coords);
+                        fetchAddress(position.coords.latitude, position.coords.longitude);
+                    },
+                    err => {
+                        console.log('Location Error:', err);
+                        setError('Error fetching location: ' + err.message);
+                    },
+                    { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
+                );
+            } catch (err) {
+                console.log('Fetch Location Error:', err);
+                setError('Error fetching location: ' + err.message);
+            }
+        };
 
-                const latitude = location.coords.latitude;
-                const longitude = location.coords.longitude;
-
+        const fetchAddress = async (latitude, longitude) => {
+            try {
                 const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
                     latitude
                 )}&lon=${encodeURIComponent(longitude)}`;
 
                 const response = await fetch(url);
-                const data = await response.json();
-                if (data && data.display_name) {
-                    setLocationName(data.display_name);
-                }
-            } catch (error) {
-                // setError(error.message);
-                setError("Permission to access location was denied");
-            }
+                const result = await response.json();
 
-            setIsLoadingLocationName(false);
+                if (result.display_name) {
+                    setAddress(result.display_name);
+                } else {
+                    setAddress('Address not found');
+                }
+            } catch (err) {
+                console.log('Reverse Geocoding Error:', err);
+                setAddress('Error fetching address');
+            }
         };
 
         fetchLocation();
@@ -403,7 +413,9 @@ const LocationScreen = () => {
 
     return (
         <View style={{ marginTop: 5, alignItems: 'center' }}>
-            {location ? (
+            {error ? (
+                <Text>{error}</Text>
+            ) : location ? (
                 <View style={styles.location}>
                     <View style={styles.hStack}>
                         <Image source={require('../../assets/Attendance/lat.png')} />
@@ -415,20 +427,43 @@ const LocationScreen = () => {
                     </View>
                     <View style={styles.hStack}>
                         <Image source={require('../../assets/Attendance/location.png')} />
-                        {isLoadingLocationName ? (
-                            <Text>Loading location name...</Text>
-                        ) : (
-                            <Text>{locationName}</Text>
-                        )}
+
+                        <Text>{address}</Text>
+
                     </View>
                 </View>
             ) : (
                 <Text>Loading location...</Text>
             )}
-            {error && <Text style={{ color: "red" }}>Error: {error}</Text>}
+            {/* Rest of your component JSX */}
         </View>
     );
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

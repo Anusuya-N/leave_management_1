@@ -2,25 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Image, Dimensions, KeyboardAvoidingView, Platform, Button } from 'react-native';
 import Sidebar from '../layout/SideBar';
 import { Box, Select } from 'native-base';
+import Header from '../layout/header';
 
 
 
 
-const LeaveHeader = ({ toggleDrawer }) => {
-  return (
-    <View>
-      <Pressable onPress={toggleDrawer}>
-        <Image
-          source={require('../../assets/Images/menu.png')}
-          height={10}
-          width={20}
-          style={styles.menuImg}
-        />
-      </Pressable>
-      <View style={styles.borderLine}></View>
-    </View>
-  );
-};
+
 
 const PayslipScreen = ({ navigation }) => {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -40,7 +27,7 @@ const PayslipScreen = ({ navigation }) => {
   ];
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 20}, (_, index) => (currentYear - index).toString());
+  const years = Array.from({ length: 20 }, (_, index) => (currentYear - index).toString());
 
   const handleMonthChange = (value) => {
     setSelectedMonth(value);
@@ -59,7 +46,7 @@ const PayslipScreen = ({ navigation }) => {
     { label: 'Back Pay / Leave Pay', amount: 200 },
     { label: 'Others (Attendance/Safety/Reimbursement)', amount: 50 },
     { label: 'Total Gross', amount: 50 },
-  
+
   ];
 
   const deductions = [
@@ -67,7 +54,7 @@ const PayslipScreen = ({ navigation }) => {
     { label: 'Others', amount: 50 },
     { label: 'CDAC/MBMF/SINDA', amount: 50 },
     { label: 'Employee CPF', amount: 50 },
-  
+
     // Add more deduction items
   ];
 
@@ -77,11 +64,11 @@ const PayslipScreen = ({ navigation }) => {
 
   // const netSalary = totalEarnings - totalDeductions;
 
- 
+
 
   return (
     <View style={styles.container}>
-      <LeaveHeader toggleDrawer={toggleDrawer} />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -91,31 +78,36 @@ const PayslipScreen = ({ navigation }) => {
           keyboardShouldPersistTaps="handled"
         >
           <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
+          <View>
+
+            <Header toggleDrawer={toggleDrawer} />
+
+          </View>
           <Text style={styles.moduleHea}>Pay Slip</Text>
           <View style={styles.dropdownContainer}>
-  <Box flex={1} marginRight={10}>
-    <Select
-      selectedValue={selectedMonth}
-      onValueChange={handleMonthChange}
-      minWidth={200}
-    >
-      {months.map((month, index) => (
-        <Select.Item key={index} label={month} value={month} />
-      ))}
-    </Select>
-  </Box>
-  <Box flex={1}>
-    <Select
-      selectedValue={selectedYear}
-      onValueChange={handleYearChange}
-      minWidth={100}
-    >
-      {years.map((year, index) => (
-        <Select.Item key={index} label={year} value={year} />
-      ))}
-    </Select>
-  </Box>
-</View>
+            <Box flex={1} marginRight={10}>
+              <Select
+                selectedValue={selectedMonth}
+                onValueChange={handleMonthChange}
+                minWidth={200}
+              >
+                {months.map((month, index) => (
+                  <Select.Item key={index} label={month} value={month} />
+                ))}
+              </Select>
+            </Box>
+            <Box flex={1}>
+              <Select
+                selectedValue={selectedYear}
+                onValueChange={handleYearChange}
+                minWidth={100}
+              >
+                {years.map((year, index) => (
+                  <Select.Item key={index} label={year} value={year} />
+                ))}
+              </Select>
+            </Box>
+          </View>
 
 
           <View style={styles.table}>
@@ -183,8 +175,8 @@ const PayslipScreen = ({ navigation }) => {
           <Text style={styles.slip}> This is Computer Generated Payslip,No Signature Required</Text>
           <Text style={styles.slip}> Any query please Call : +65 868778767 </Text>
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    
-    </View>
+
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -263,11 +255,11 @@ const styles = StyleSheet.create({
     borderTopColor: '#000',
     paddingTop: 5,
   },
-  lastContainer:{
+  lastContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginVertical: 10,
-     
+
   },
   boldRow: {
     borderTopWidth: 1,
@@ -290,20 +282,20 @@ const styles = StyleSheet.create({
 
     borderWidth: 1,
     borderColor: "#000",
-    marginTop:15,
+    marginTop: 15,
   },
   slip: {
     color: "red",
     marginTop: 10,
-    alignSelf:"center"
+    alignSelf: "center"
   }
-,
-dropdownContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  paddingHorizontal: 20,
-  marginTop: 20,
-  
-},
+  ,
+  dropdownContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 20,
+
+  },
 });
 export default PayslipScreen;

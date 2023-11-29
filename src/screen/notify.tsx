@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, TextInput, Platform, Linking } from 'react-native';
 import { Button } from "native-base";
 import Sidebar from '../layout/SideBar';
+import Header from '../layout/header';
+
 
 const Notify = ({ navigation }) => {
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -31,18 +33,13 @@ const Notify = ({ navigation }) => {
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={styles.keyboardAvoidingContainer}
                 >
-                    <View>
-                        <Pressable onPress={toggleDrawer}>
-                            <Image
-                                source={require('../../assets/Images/menu.png')}
-                                height={10}
-                                width={20}
-                                style={styles.menuImg}
-                            />
-                        </Pressable>
-                        <View style={styles.borderLine}></View>
-                    </View>
+
                     <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
+                    <View>
+
+                        <Header toggleDrawer={toggleDrawer} />
+
+                    </View>
                     <Text style={styles.moduleHea}>Notify</Text>
                     <View style={styles.content}>
                         <View style={styles.textContainer}>
@@ -113,13 +110,13 @@ const styles = StyleSheet.create({
     innerText: {
         fontWeight: 'bold', // Apply any styles you want here
     },
-    moduleHea:{
-        fontWeight:"bold",
-        color:"#054582",
-        fontSize:18,
-        alignSelf:"center",
-        marginTop:40,
-        textTransform:"uppercase"
+    moduleHea: {
+        fontWeight: "bold",
+        color: "#054582",
+        fontSize: 18,
+        alignSelf: "center",
+        marginTop: 40,
+        textTransform: "uppercase"
     }
 });
 

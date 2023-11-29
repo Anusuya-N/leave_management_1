@@ -1,16 +1,16 @@
 import React from 'react';
-import { View, Image,StyleSheet,Dimensions,Text } from 'react-native';
+import { View, Image, StyleSheet, Dimensions, Text } from 'react-native';
 import Modal from 'react-native-modal';
 import DrawerMenu from '../navigator/DrawerContent'; // Import the DrawerMenu component
 
 
 const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
   const menuItems = [
-    { text: 'Dashboard', screenName: 'Home', menuType: 'subheading',iconPath: require('../../assets/SidebarImg/home.png') },
-    { text: 'Attendance Clock', screenName: 'AttendanceClockScreen', menuType: 'subheading',iconPath: require('../../assets/SidebarImg/clock.png') },
-    { text: 'Notify', screenName: 'Notify', menuType: 'subheading',iconPath: require('../../assets/SidebarImg/bell.png') },
+    { text: 'Dashboard', screenName: 'Home', menuType: 'subheading',  },
+    { text: 'Attendance Clock', screenName: 'AttendanceClockScreen', menuType: 'subheading' },
+    { text: 'Notify', screenName: 'Notify', menuType: 'subheading' },
     { text: 'Leave Manager', screenName: 'Screen4', menuType: 'heading' },
-    { text: 'Add/Cancel Leaves', screenName: 'AddLeave', menuType: 'subheading',iconPath: require('../../assets/SidebarImg/leave.png') },
+    { text: 'Add/Cancel Leaves', screenName: 'AddLeave', menuType: 'subheading' },
     { text: 'Proxy Leave Application', screenName: 'ProxyLeave', menuType: 'subheading' },
     { text: 'Comp-Off Application', screenName: 'Screen7', menuType: 'subheading' },
     { text: 'Approve/Reject Leave', screenName: 'Screen8', menuType: 'subheading' },
@@ -21,7 +21,7 @@ const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
     { text: 'Planned & Unplanned leaves', screenName: 'Screen12', menuType: 'subheading' },
     { text: 'Total Paid LWP', screenName: 'Screen13', menuType: 'subheading' },
     { text: 'Authorized & Unauthorized Leaves', screenName: 'Screen14', menuType: 'subheading' },
-    { text: 'Log Out', screenName: 'Login', menuType: 'Login',iconPath: require('../../assets/SidebarImg/logout.png') },
+    { text: 'Log Out', screenName: 'Login', menuType: 'Login' },
   ];
 
   return (
@@ -45,7 +45,7 @@ const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
             navigation={navigation}
             screenName={menuItem.screenName}
             menuType={menuItem.menuType}
-            icon={menuItem.iconPath}
+           
           />
         ))}
       </View>
@@ -65,14 +65,14 @@ const styles = StyleSheet.create({
     height: windowHeight,
     position: 'absolute',
     top: 50,
-    borderTopRightRadius:30,
+    borderTopRightRadius: 30,
   },
   userCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#fff', 
-    borderColor: '#054582', 
+    backgroundColor: '#fff',
+    borderColor: '#054582',
     borderWidth: 2,
     alignSelf: 'center',
     justifyContent: 'center',
@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 18,
-    color: '#054582', 
+    color: '#054582',
     fontWeight: 'bold',
   },
-  
-  
+
+
 
 });

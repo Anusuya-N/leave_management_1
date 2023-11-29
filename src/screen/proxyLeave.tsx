@@ -14,22 +14,9 @@ import {
 import { Button, Select, Radio, HStack, Input, VStack, Box } from 'native-base';
 import Sidebar from '../layout/SideBar';
 import { Calendar } from 'react-native-calendars';
+import Header from '../layout/header';
 
-const LeaveHeader = ({ toggleDrawer }) => {
-  return (
-    <View>
-      <Pressable onPress={toggleDrawer}>
-        <Image
-          source={require('../../assets/Images/menu.png')}
-          height={10}
-          width={20}
-          style={styles.menuImg}
-        />
-      </Pressable>
-      <View style={styles.borderLine}></View>
-    </View>
-  );
-};
+
 
 const ProxyLeave = ({ navigation }) => {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -104,7 +91,7 @@ const ProxyLeave = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <LeaveHeader toggleDrawer={toggleDrawer} />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }} // Set flex to 1 to allow the content to expand
@@ -114,6 +101,11 @@ const ProxyLeave = ({ navigation }) => {
           keyboardShouldPersistTaps="handled" // Allow scrolling even when keyboard is visible
         >
           <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
+          <View>
+
+            <Header toggleDrawer={toggleDrawer} />
+
+          </View>
           <Text style={styles.moduleHea}>proxy leave</Text>
           <View style={styles.content}>
             <Text style={styles.label}>Employee Name</Text>
@@ -133,7 +125,7 @@ const ProxyLeave = ({ navigation }) => {
               onDayPress={handleDayPress}
               markingType="period"
               markedDates={selectedRange}
-             
+
             />
 
             <View>
@@ -165,7 +157,7 @@ const ProxyLeave = ({ navigation }) => {
               <Input variant="underlined" type="text" />
             </View>
 
-            <Button  mt={10} style={styles.applyBtn}>
+            <Button mt={10} style={styles.applyBtn}>
               Save
             </Button>
           </View>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { DrawerActions } from '@react-navigation/native';
+import { View } from 'native-base';
 
 const TopBar = ({ navigation }) => {
   return (
@@ -12,6 +13,9 @@ const TopBar = ({ navigation }) => {
         style={styles.menuIcon}
         source={require('../../../assets/Images/menu.png')}
       />
+       
+          <Image alt="logo" source={require('../../assets/Logo/new.png')} />
+        
     </TouchableOpacity>
   );
 };

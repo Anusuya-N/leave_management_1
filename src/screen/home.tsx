@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions } from 'react-native';
 import { Button, HStack } from 'native-base';
 import Sidebar from '../layout/SideBar'; // Import the Sidebar component
+import Header from '../layout/header';
 
-const Home = ({ navigation }) => {
+const Home = ({ navigation }: any) => {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
 
   const toggleDrawer = () => {
@@ -17,18 +18,13 @@ const Home = ({ navigation }) => {
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View >
-          <Pressable onPress={toggleDrawer}>
-            <Image
-              source={require('../../assets/Images/menu.png')}
-              height={10}
-              width={20}
-              style={styles.menuImg}
-            />
-          </Pressable>
-          <View style={styles.borderLine} ></View>
-        </View>
+      
         <Sidebar isVisible={isDrawerVisible} onCloseDrawer={onCloseDrawer} navigation={navigation} />
+        <View>
+
+          <Header toggleDrawer={toggleDrawer} />
+
+        </View>
         <View style={styles.content}>
           <View style={styles.main}   >
             <View >
@@ -100,14 +96,14 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     width: screenWidth,
   },
-  main:{
-    flexDirection:"row",
-    flexWrap:"wrap",
-    gap:1,
-    justifyContent:"space-evenly",
-    marginTop:"3%",
-    padding:5,
-    
+  main: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 1,
+    justifyContent: "space-evenly",
+    marginTop: "3%",
+    padding: 5,
+
   }
 });
 
