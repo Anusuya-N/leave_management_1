@@ -1,65 +1,75 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
-import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
+import { View, Image, StyleSheet, Button, Text } from 'react-native';
+import { launchCamera } from 'react-native-image-picker';
 
-const CameraScreen = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
+function App({ navigation }) {
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const [base, setBase] = useState(null);
+  console.log('base: ', base);
 
   useEffect(() => {
-    checkCameraPermission();
+    const handleTakePhoto = () => {
+      const options = {
+        storageOptions: {
+          skipBackup: true,
+          path: 'images',
+          flash: 'off',
+        },
+      };
+
+      launchCamera(options, async (response) => {
+        if (response.didCancel) {
+        
+        } else if (response.error) {
+         
+        } else {
+          const imageUri = response.assets?.[0]?.uri;
+          setCapturedPhoto(imageUri);
+
+          // Convert the image to base64
+          const base64 = await imageToBase64(imageUri);
+          console.log('Base64 Image:', base64);
+          setBase(base64);
+
+          // Now you can use the base64 string as needed
+        }
+      });
+    };
+
+    handleTakePhoto();
   }, []);
 
-  const checkCameraPermission = async () => {
-    const result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
-    if (result === RESULTS.DENIED) {
-      requestCameraPermission();
-    }
-  };
+  const imageToBase64 = async (imageUri) => {
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
 
-  const requestCameraPermission = async () => {
-    const result = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
-    if (result === RESULTS.GRANTED) {
-      console.log('Photo library permission granted');
-    } else {
-      console.log('Photo library permission denied');
-    }
-  };
-
-  const openImagePicker = () => {
-    launchImageLibrary({ mediaType: 'mixed', includeBase64: true }, (response) => {
-      if (response.didCancel) {
-        console.log('Image picker was canceled');
-      } else if (response.error) {
-        console.error('Image picker error: ', response.error);
-      } else {
-        const uri = response.assets?.[0]?.uri || response.uri;
-        const base64 = response.assets?.[0]?.base64 || response.base64;
-  
-        setSelectedImage(uri);
-  
-        // Now you can use the 'base64' variable for your purposes
-        console.log('Base64 representation of the selected image:', base64);
-      }
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result.split(',')[1]);
+      };
+      reader.onerror = (error) => reject(error);
+      reader.readAsDataURL(blob);
     });
   };
-  
+
+  const handleConfirmation = () => {
+    navigation.navigate('AttendanceClockScreen', { base64Data: base });
+  };
   
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={openImagePicker} style={styles.pickImageButton}>
-        <Text style={styles.pickImageButtonText}>Pick Image from Gallery</Text>
-      </TouchableOpacity>
-
-      {selectedImage && (
-        <View style={styles.selectedImageContainer}>
-          <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
-        </View>
+      {capturedPhoto && (
+        <>
+          <Text>Captured Image</Text>
+          <Image source={{ uri: capturedPhoto }} style={styles.previewImage} />
+          <Button title="Confirm" onPress={handleConfirmation} />
+        </>
       )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -67,24 +77,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pickImageButton: {
-    backgroundColor: 'green',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  pickImageButtonText: {
-    color: 'white',
-    fontSize: 18,
-  },
-  selectedImageContainer: {
-    alignItems: 'center',
-  },
-  selectedImage: {
-    width: 200,
-    height: 200,
-    marginTop: 20,
+  previewImage: {
+    width: 300,
+    height: 300,
+    resizeMode: 'cover',
   },
 });
 
-export default CameraScreen;
+export default App;

@@ -9,10 +9,12 @@ import Sidebar from '../layout/SideBar';
 import { useAuth } from '../context/AuthContext';
 import Header from '../layout/header';
 
-const AttendanceClockScreen = ({ navigation }) => {
+const AttendanceClockScreen = ({ navigation,route }) => {
+   
+    const photoData = route.params?.base64Data || null;
     const { email, password, userStatus } = useAuth();
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-    const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+   
     const [showAll, setShowAll] = useState(false);
 
     const currentDate = new Date();
@@ -32,7 +34,7 @@ const AttendanceClockScreen = ({ navigation }) => {
                 InTime: formattedTime,
                 OutTime: "",
                 outImage: "",
-                InImage: capturedPhoto,
+                InImage: photoData,
             };
             console.log('InTime: ', requestBody.InTime);
             console.log('outImage: ', requestBody.outImage);
@@ -145,7 +147,7 @@ const AttendanceClockScreen = ({ navigation }) => {
                                 </Text>
                             </View>
                             <View style={{ flex: 1 }}>
-                                {capturedPhoto ? (
+                                {photoData ? (
                                     <></>
 
                                 ) : <Button style={styles.checkIn} onPress={() => navigation.navigate('CameraScreen')}  >
@@ -153,16 +155,13 @@ const AttendanceClockScreen = ({ navigation }) => {
                                     <Text style={styles.checkInTxt}>Clock In</Text>
                                 </Button>}
                             </View>
+                           
                         </View>
 
 
                         <LocationScreen />
 
-                        {capturedPhoto && (
-                            <View style={styles.preview}>
-                                <Image source={{ uri: `data:image/jpeg;base64,${capturedPhoto}` }} style={styles.previewImage} />
-                            </View>
-                        )}
+                      
 
                         <Button mt={3} onPress={timeUpdate}>Submit</Button>
                         <View style={{ marginTop: 10 }}>
