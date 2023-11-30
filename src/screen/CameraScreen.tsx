@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, StyleSheet, Button, Text } from 'react-native';
+import { View, Image, StyleSheet,  Text } from 'react-native';
+import { Button } from 'native-base';
 import { launchCamera } from 'react-native-image-picker';
 
 function App({ navigation }) {
@@ -19,9 +20,9 @@ function App({ navigation }) {
 
       launchCamera(options, async (response) => {
         if (response.didCancel) {
-        
+
         } else if (response.error) {
-         
+
         } else {
           const imageUri = response.assets?.[0]?.uri;
           setCapturedPhoto(imageUri);
@@ -56,15 +57,17 @@ function App({ navigation }) {
   const handleConfirmation = () => {
     navigation.navigate('AttendanceClockScreen', { base64Data: base });
   };
-  
+
 
   return (
     <View style={styles.container}>
       {capturedPhoto && (
         <>
-          <Text>Captured Image</Text>
+       
           <Image source={{ uri: capturedPhoto }} style={styles.previewImage} />
-          <Button title="Confirm" onPress={handleConfirmation} />
+          <Button mt={5} onPress={handleConfirmation} style={{ backgroundColor: "#054582" }} alignSelf={"center"} >
+                <Text style={{ color: "white" }}>Confirm</Text>
+              </Button>
         </>
       )}
     </View>
@@ -79,7 +82,7 @@ const styles = StyleSheet.create({
   },
   previewImage: {
     width: 300,
-    height: 300,
+    height: 500,
     resizeMode: 'cover',
   },
 });
