@@ -16,7 +16,7 @@ const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
     { text: 'Approve/Reject Leave', screenName: 'Screen8', menuType: 'subheading' },
     { text: 'Reports', screenName: 'Screen9', menuType: 'heading' },
     { text: 'Pay Slip', screenName: 'Payslip', menuType: 'subheading' },
-    { text: 'Claim', screenName: 'ClaimPage', menuType: 'subheading' },
+    { text: 'Claim page', screenName: 'ClaimPage', menuType: 'subheading' },
     { text: 'Leaves Per Type', screenName: 'Screen11', menuType: 'subheading' },
     { text: 'Planned & Unplanned leaves', screenName: 'Screen12', menuType: 'subheading' },
     { text: 'Total Paid LWP', screenName: 'Screen13', menuType: 'subheading' },

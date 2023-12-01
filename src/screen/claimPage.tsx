@@ -96,7 +96,7 @@ const ClaimPage = ({ navigation }) => {
     };
     return (
         <View style={styles.container}>
-            =
+            
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}
