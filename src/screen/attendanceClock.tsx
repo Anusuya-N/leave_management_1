@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, Image, Pressable, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, Image, Pressable, Platform, TouchableOpacity, PermissionsAndroid, Alert, Linking } from 'react-native';
 import { Button, HStack, VStack } from "native-base";
 import Geolocation from '@react-native-community/geolocation';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import Home from "../screen/home";
 
 
 import Sidebar from '../layout/SideBar';
 import { useAuth } from '../context/AuthContext';
 import Header from '../layout/header';
+import { navigation } from '../navigator';
 
-const AttendanceClockScreen = ({ navigation,route }) => {
-   
+const AttendanceClockScreen = ({ navigation, route }) => {
+
     const photoData = route.params?.base64Data || null;
     const { email, password, userStatus } = useAuth();
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-   
-    const [showAll, setShowAll] = useState(false);
+    const [displayedData, setDisplayedData] = useState([]);
 
+    const [showAll, setShowAll] = useState(false);
+    const [submit, setSubmit] = useState(null)
     const currentDate = new Date();
     const timeUpdate = async () => {
 
@@ -52,6 +55,24 @@ const AttendanceClockScreen = ({ navigation,route }) => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('data: ', data);
+                if (data.Status === "Succcess") {
+                    setSubmit("Updated Successfully")
+                }
+                else {
+
+                }
+                // Inside the map function
+                const processedData = data.attentence.map(entry => ({
+                    ...entry,
+                    Date: entry.Date,
+                    Day: entry.Day,
+                    ClockIn: entry.ClockIn,
+                    ClockOut: entry.ClockOut,
+                    InImage: entry.InImage,
+                }));
+
+                setDisplayedData(processedData);
+
                 // Handle the response data as needed
             } else {
                 console.error("API request failed with status:", response.status);
@@ -61,7 +82,98 @@ const AttendanceClockScreen = ({ navigation,route }) => {
         }
     };
 
+    const attendanceList = async () => {
+        try {
+            const requestBody = {
+                Branch: userStatus,
+                EmployeeId: email,
+                InDate: "2024-02-01",
+                Type: "Inv"
 
+            };
+
+
+            const response = await fetch("http://118.189.74.190:1016//api/attendancelistapi", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Inside the map function
+                const processedData = data.attentence.map(entry => ({
+                    ...entry,
+                    Date: entry.Date,
+                    Day: entry.Day,
+                    ClockIn: entry.ClockIn,
+                    ClockOut: entry.ClockOut,
+                    InImage: entry.InImage,
+                }));
+
+                setDisplayedData(processedData);
+
+                // Handle the response data as needed
+            } else {
+                console.error("API request failed with status:", response.status);
+            }
+        } catch (error) {
+            console.error("Error occurred during API request:", error);
+        }
+    };
+
+    useEffect(() => {
+        attendanceList();
+    }, [])
+
+    useEffect(() => {
+        // Check if there is at least one entry with a ClockIn for today
+        const hasClockInForToday = displayedData.some(
+          entry => entry.ClockIn && isToday(entry.DateIn)
+        );
+      
+        // Log the result of isToday function for all entries
+        displayedData.forEach(entry => {
+          console.log('Entry Date:', entry.Date); // Log the date of the entry
+          console.log('Is today:', isToday(entry.Date));
+        });
+      
+        // Log ClockIn and DateIn values for all entries
+        displayedData.forEach(entry => {
+          console.log('ClockIn:', entry.ClockIn);
+          console.log('DateIn:', entry.Date);
+        });
+      
+        // Log the final button label based on the condition for at least one entry
+        console.log('Button Label:', hasClockInForToday ? 'Clock Out' : 'Clock In');
+      }, [displayedData]); // Make sure to include the dependencies if used inside useEffect
+      
+      
+      
+      
+
+      const isToday = (dateString) => {
+        if (!dateString) {
+            return false; // Handle undefined date string
+        }
+    
+        const today = new Date();
+        const dateParts = dateString.split('/');
+        const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+        
+        return (
+            today.getDate() === date.getDate() &&
+            today.getMonth() === date.getMonth() &&
+            today.getFullYear() === date.getFullYear()
+        );
+    };
+    
+    
+    
+ 
     const initialRowCount = 3;
 
 
@@ -91,6 +203,10 @@ const AttendanceClockScreen = ({ navigation,route }) => {
     //     // You can use this effect to fetch data from an API and update the data state
     //     // For now, we're using the mock data in the initial state
     // }, []);
+
+
+
+      
 
     const toggleShowAll = () => {
         setShowAll(!showAll);
@@ -150,20 +266,34 @@ const AttendanceClockScreen = ({ navigation,route }) => {
                                 {photoData ? (
                                     <></>
 
-                                ) : <Button style={styles.checkIn} onPress={() => navigation.navigate('CameraScreen')}  >
-
-                                    <Text style={styles.checkInTxt}>Clock In</Text>
-                                </Button>}
+                                ) :  <Button
+                                style={styles.checkIn}
+                                onPress={() => navigation.navigate('CameraScreen')}
+                              >
+                                <Text style={styles.checkInTxt}>
+                                  {displayedData.some(entry => entry.ClockIn && isToday(entry.Date))
+                                    ? 'Clock Out'
+                                    : 'Clock In'}
+                                </Text>
+                              </Button>
+                                }
                             </View>
-                           
+
                         </View>
 
 
-                        <LocationScreen />
+                        <LocationScreen navigation={navigation} />
 
-                      
 
-                        <Button mt={3} onPress={timeUpdate}>Submit</Button>
+
+                        {photoData ? (
+                            <Button mt={3} onPress={timeUpdate}>Submit</Button>
+                        ) : null}
+
+
+                        <Text style={{ color: 'green', alignItems: 'center', justifyContent: 'center', fontWeight: "bold" }}>
+                            {submit}
+                        </Text>
                         <View style={{ marginTop: 10 }}>
                             <Text style={{ fontWeight: "bold", marginLeft: 5 }}>Clock In / Clock Out Status</Text>
                             <View >
@@ -173,15 +303,19 @@ const AttendanceClockScreen = ({ navigation,route }) => {
                                     <Text style={styles.headerText}>Clock In</Text>
                                     <Text style={styles.headerText}>Clock Out</Text>
                                 </View>
-                                {data.slice(0, showAll ? data.length : initialRowCount).map((entry, index) => (
+                                {displayedData.slice(0, showAll ? data.length : initialRowCount).map((entry, index) => (
                                     <View style={styles.row} key={index}>
                                         <View style={styles.dateContainer}>
-                                            <Text style={styles.date}>{entry.date}</Text>
-                                            <Text style={styles.timeBelow}>{entry.timeBelow}</Text>
+                                            <Text style={styles.date}>{entry.Date}</Text>
+                                            <Text style={styles.timeBelow}>{entry.ClockIn}</Text>
                                         </View>
-                                        <Text style={styles.cell}>{entry.day}</Text>
-                                        <Text style={[styles.cell, styles.clockIn]}>{entry.clockIn}</Text>
-                                        <Text style={[styles.cell, styles.clockOut]}>{entry.clockOut}</Text>
+                                        <Text style={styles.cell}>{entry.Day}</Text>
+                                        <Text style={[styles.cell, styles.clockIn]}>{entry.ClockIn}</Text>
+                                        <Text style={[styles.cell, styles.clockOut]}>{entry.ClockOut}</Text>
+                                        {/* <Image
+                                            style={styles.image}
+                                            source={{ uri: `data:image/jpeg;base64,${entry.InImage}` }}
+                                        /> */}
                                     </View>
                                 ))}
                                 {renderViewButton()}
@@ -345,6 +479,10 @@ const styles = StyleSheet.create({
         textDecorationLine: 'underline',
 
     },
+    image: {
+        width: 100, // Set your desired width
+        height: 100, // Set your desired height
+    },
 });
 
 export default AttendanceClockScreen;
@@ -361,29 +499,26 @@ export default AttendanceClockScreen;
 
 
 
-const LocationScreen = () => {
+const LocationScreen = ({ navigation }) => {
     const [location, setLocation] = useState(null);
     const [address, setAddress] = useState('');
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchLocation = async () => {
+        const requestLocationPermission = async () => {
             try {
-                Geolocation.getCurrentPosition(
-                    position => {
-                        console.log('Location Success:', position);
-                        setLocation(position.coords);
-                        fetchAddress(position.coords.latitude, position.coords.longitude);
-                    },
-                    err => {
-                        console.log('Location Error:', err);
-                        setError('Error fetching location: ' + err.message);
-                    },
-                    { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
-                );
+                const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+                if (result === 'granted') {
+                    console.log('Location permission granted');
+                    return true;
+                } else {
+                    console.log('Location permission denied');
+                    throw new Error('Location permission denied.');
+                }
             } catch (err) {
-                console.log('Fetch Location Error:', err);
-                setError('Error fetching location: ' + err.message);
+                console.log('Request Location Permission Error:', err);
+                return false;
             }
         };
 
@@ -407,8 +542,68 @@ const LocationScreen = () => {
             }
         };
 
-        fetchLocation();
+        const handleLocationError = err => {
+            setError('Error fetching location: ' + err.message);
+
+            if (err.code === 2) {
+                // No location provider available
+                Alert.alert(
+                    'Location Services Unavailable',
+                    'Please make sure your device has location services enabled.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => {
+                                console.log('OK Pressed');
+                                // Navigate back to the home page
+                                navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+                            },
+                        },
+                        // {
+                        //     text: 'Enable Location',
+                        //     onPress: () => openDeviceLocationSettings(),
+                        // },
+                    ]
+                );
+            }
+        };
+
+        const checkAndFetchLocation = async () => {
+            try {
+                const hasPermission = await requestLocationPermission();
+                if (hasPermission) {
+                    Geolocation.getCurrentPosition(
+                        position => {
+                            console.log('Location Success:', position);
+                            setLocation(position.coords);
+                            fetchAddress(position.coords.latitude, position.coords.longitude);
+                            setLoading(false);
+                        },
+                        err => {
+                            console.log('Location Error:', err);
+                            handleLocationError(err);
+                            setLoading(false);
+                        },
+                        { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
+                    );
+                } else {
+                    throw new Error('Location permission not granted.');
+                }
+            } catch (err) {
+                console.log('Check and Fetch Location Error:', err);
+                setError('Error checking or fetching location: ' + err.message);
+                setLoading(false);
+            }
+        };
+
+        checkAndFetchLocation();
     }, []);
+
+    const openDeviceLocationSettings = () => {
+        Linking.openURL('content://com.android.settings/settings/location');
+    };
+
+
 
     return (
         <View style={{ marginTop: 5, alignItems: 'center' }}>

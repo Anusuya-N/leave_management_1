@@ -1,15 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, StyleSheet,  Text } from 'react-native';
+import { View, Image, StyleSheet, Text, PermissionsAndroid } from 'react-native';
 import { Button } from 'native-base';
 import { launchCamera } from 'react-native-image-picker';
+
+async function requestCameraPermission() {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+      {
+        title: 'Camera Permission',
+        message: 'App needs access to your camera to take pictures.',
+        // buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch (err) {
+    console.warn(err);
+    return false;
+  }
+}
 
 function App({ navigation }) {
   const [capturedPhoto, setCapturedPhoto] = useState(null);
   const [base, setBase] = useState(null);
-  console.log('base: ', base);
 
   useEffect(() => {
-    const handleTakePhoto = () => {
+    const handleTakePhoto = async () => {
+      const hasCameraPermission = await requestCameraPermission();
+
+      if (!hasCameraPermission) {
+        console.log('Please enable camera permissions in app settings.');
+        return;
+      }
+
       const options = {
         storageOptions: {
           skipBackup: true,
@@ -20,9 +45,9 @@ function App({ navigation }) {
 
       launchCamera(options, async (response) => {
         if (response.didCancel) {
-
+          // Handle cancelation
         } else if (response.error) {
-
+          // Handle error
         } else {
           const imageUri = response.assets?.[0]?.uri;
           setCapturedPhoto(imageUri);
@@ -58,16 +83,18 @@ function App({ navigation }) {
     navigation.navigate('AttendanceClockScreen', { base64Data: base });
   };
 
-
   return (
     <View style={styles.container}>
       {capturedPhoto && (
         <>
-       
           <Image source={{ uri: capturedPhoto }} style={styles.previewImage} />
-          <Button mt={5} onPress={handleConfirmation} style={{ backgroundColor: "#054582" }} alignSelf={"center"} >
-                <Text style={{ color: "white" }}>Confirm</Text>
-              </Button>
+          <Button
+            mt={5}
+            onPress={handleConfirmation}
+            style={{ backgroundColor: '#054582' }}
+            alignSelf={'center'}>
+            <Text style={{ color: 'white' }}>Confirm</Text>
+          </Button>
         </>
       )}
     </View>

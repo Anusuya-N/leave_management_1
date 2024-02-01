@@ -11,14 +11,17 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  PermissionsAndroid,
 } from 'react-native';
 import { Button, Select, Radio, HStack, Input, VStack, Box } from 'native-base';
 import Sidebar from '../layout/SideBar';
 import { Calendar } from 'react-native-calendars';
 import { useAuth } from '../context/AuthContext';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary,launchCamera } from 'react-native-image-picker';
 import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import Header from '../layout/header';
+import Modal from 'react-native-modal';
+
 
 
 
@@ -26,6 +29,7 @@ import Header from '../layout/header';
 
 
 const AddLeave = ({ navigation }) => {
+  const [modalVisible, setModalVisible] = useState(false);
   const { email, userStatus } = useAuth()
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [selectedRange, setSelectedRange] = useState({});
@@ -50,7 +54,7 @@ const AddLeave = ({ navigation }) => {
   console.log('imageBase64: ', imageBase64);
   const [imageUri, setImageUri] = useState(null);
   const [imageName, setImageName] = useState(null);
-  const [formStatus, setFormStatus] = useState(null);
+  const [formStatus, setFormStatus] = useState(false);
   // const [selectedDocumentName, setSelectedDocumentName] = useState(null);
   // console.log('selectedDocumentName: ', selectedDocumentName);
   // const [selectedDocumentType, setSelectedDocumentType] = useState(null);
@@ -81,6 +85,26 @@ const AddLeave = ({ navigation }) => {
   useEffect(() => {
     checkCameraPermission();
   }, []);
+
+
+  const requestCamera = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Camera Permission',
+          message: 'App needs access to your camera to take pictures.',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK',
+        }
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  };
+
 
   const checkCameraPermission = async () => {
     const result = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
@@ -118,6 +142,31 @@ const AddLeave = ({ navigation }) => {
         console.log('Base64 representation of the selected image:', base64);
       }
     });
+  };
+
+  // const openCamera = () => {
+  //   launchCamera({ mediaType: 'photo', includeBase64: true, cameraType: 'back'}, (response) => {
+  //     if (!response.didCancel && !response.error) {
+  //       const uri = response.assets?.[0]?.uri || response.uri;
+  //       const base64 = response.assets?.[0]?.base64 || response.base64;
+  //       setImageBase64(base64)
+  //       setSelectedImage(uri);
+  //     }
+  //   });
+  // };
+  const openCamera = async () => {
+    const hasPermission = await requestCamera();
+
+    if (hasPermission) {
+      launchCamera({ mediaType: 'photo', includeBase64: true, cameraType: 'back' }, (response) => {
+        if (!response.didCancel && !response.error) {
+                const uri = response.assets?.[0]?.uri || response.uri;
+                const base64 = response.assets?.[0]?.base64 || response.base64;
+                setImageBase64(base64)
+                setSelectedImage(uri);
+        }
+      });
+    }
   };
 
   const handleDayPress = (day) => {
@@ -320,8 +369,12 @@ const AddLeave = ({ navigation }) => {
       if (response.ok) {
         const data = await response.json();
         const submitForm = data.Status
-        setFormStatus(submitForm)
         console.log('data: ', data);
+        if (submitForm === 'Succcess') {
+          setFormStatus(true)
+          // Navigate to the home page
+          navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+        }
         // Handle the response data as needed
       } else {
         console.error("API request failed with status:", response.status);
@@ -394,6 +447,14 @@ const AddLeave = ({ navigation }) => {
     setEndDateSelection(period);
   };
 
+  const getCurrentMonth = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1; // Months are zero-based
+    const formattedMonth = month < 10 ? `0${month}` : `${month}`;
+    return `${year}-${formattedMonth}-01`;
+  };
+
   return (
     <View style={styles.container}>
 
@@ -438,7 +499,7 @@ const AddLeave = ({ navigation }) => {
 
             <Calendar
               style={styles.calendar}
-              current={'2023-08-01'}
+             current={getCurrentMonth()}
               onDayPress={handleDayPress}
               markingType="period"
               markedDates={selectedRange}
@@ -628,18 +689,38 @@ const AddLeave = ({ navigation }) => {
                 <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
               </View>
             )}
-            {formStatus === "Succcess" ? (
+            {formStatus ? (
               <Text style={styles.succMsg}>Leave Applied Successfully</Text>
             ) : null}
             <View style={styles.finalBtn} >
-              <Button onPress={openImagePicker} style={{ backgroundColor: "#054582" }} alignSelf={"center"}   >
+              <Button onPress={() => setModalVisible(true)} style={{ backgroundColor: "#054582" }} alignSelf={"center"}   >
                 <Text style={{ color: "white" }}>UPLOAD PHOTO</Text>
               </Button>
               <Button onPress={leaveUpdate} style={{ backgroundColor: "#054582" }} alignSelf={"center"} >
                 <Text style={{ color: "white" }}>SUBMIT</Text>
               </Button>
             </View>
-
+            <Modal
+        isVisible={modalVisible}
+        onBackdropPress={() => setModalVisible(false)}
+        style={styles.modal}
+      >
+        <View style={styles.modalContainer}>
+        <View style={styles.rowContainer}>
+        <TouchableOpacity onPress={() => { setModalVisible(false); openCamera(); }}>
+          <Image source={require('../../assets/Apply/camera.png')} style={styles.icon} />
+            <Text style={styles.modalOption}>Take Photo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => {setModalVisible(false); openImagePicker()}}>
+          <Image source={require('../../assets/Apply/photo.png')} style={styles.icon} />
+            <Text style={styles.modalOption}>Choose from Gallery</Text>
+          </TouchableOpacity>
+          </View>
+          <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Text style={styles.modalCancel}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -767,7 +848,36 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     marginTop: 20,
-  }
+  },
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+  },
+  modalOption: {
+    fontSize: 15,
+    marginBottom: 20,
+  },
+  modalCancel: {
+    fontSize: 18,
+    color: 'red',
+    marginTop: 20,
+  
+ 
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    // marginBottom: 10,
+  },
+  icon: {
+    alignSelf:"center"
+  },
 });
 
 export default AddLeave;
