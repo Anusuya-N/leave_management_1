@@ -12,6 +12,7 @@ import {
   Platform,
   TouchableOpacity,
   PermissionsAndroid,
+  Alert,
 } from 'react-native';
 import { Button, Select, Radio, HStack, Input, VStack, Box } from 'native-base';
 import Sidebar from '../layout/SideBar';
@@ -40,42 +41,24 @@ const AddLeave = ({ navigation }) => {
   const [selectedLeave, setSelectedLeave] = useState('');
   const [selectedRadioValue, setSelectedRadioValue] = useState('');
   const [startDateSelection, setStartDateSelection] = useState(null); // Can be "AM", "PM", or null
-  console.log('startDateSelection: ', startDateSelection);
+
 
   const [endDateSelection, setEndDateSelection] = useState(null); // Can be "AM", "PM", or null
-  console.log('endDateSelection: ', endDateSelection);
-  console.log('selectedRadioValue: ', selectedRadioValue);
+
   const [singleRadioValue, setSingleRadioValue] = useState('');
-  console.log('singleRadioValue: ', singleRadioValue);
+
   const [noonType, setNoonType] = useState('');
-  console.log('noonType: ', noonType);
+ 
   const [expandedPreview, setExpandedPreview] = useState(false);
   const [imageBase64, setImageBase64] = useState(null);
-  console.log('imageBase64: ', imageBase64);
+ 
   const [imageUri, setImageUri] = useState(null);
   const [imageName, setImageName] = useState(null);
   const [formStatus, setFormStatus] = useState(false);
-  // const [selectedDocumentName, setSelectedDocumentName] = useState(null);
-  // console.log('selectedDocumentName: ', selectedDocumentName);
-  // const [selectedDocumentType, setSelectedDocumentType] = useState(null);
-  // console.log('selectedDocumentType: ', selectedDocumentType);
 
 
-  // const pickDocument = async () => {
 
-  //   const result = await DocumentPicker.getDocumentAsync();
-  //   if (result.type === 'success') {
-  //     // Set the selected document name and type
-  //     setSelectedDocumentName(result.name);
-  //     setSelectedDocumentType(result.type);
-  //     console.log('Document selected:', result.uri);
-  //   } else if (result.type === 'cancelled') {
-  //     // Handle if the user cancelled the document picker
-  //     console.log('Document selection cancelled');
-  //   }
-  // };
-
-
+ 
   const toggleExpandedPreview = () => {
     setExpandedPreview(!expandedPreview);
   };
@@ -116,9 +99,9 @@ const AddLeave = ({ navigation }) => {
   const requestCameraPermission = async () => {
     const result = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
     if (result === RESULTS.GRANTED) {
-      console.log('Photo library permission granted');
+      // console.log('Photo library permission granted');
     } else {
-      console.log('Photo library permission denied');
+      // console.log('Photo library permission denied');
     }
   };
 
@@ -127,7 +110,7 @@ const AddLeave = ({ navigation }) => {
       if (response.didCancel) {
         console.log('Image picker was canceled');
       } else if (response.error) {
-        console.error('Image picker error: ', response.error);
+        // console.error('Image picker error: ', response.error);
       } else {
         const uri = response.assets?.[0]?.uri || response.uri;
         const base64 = response.assets?.[0]?.base64 || response.base64;
@@ -139,7 +122,7 @@ const AddLeave = ({ navigation }) => {
         setSelectedImage(uri);
 
         // Now you can use the 'base64' variable for your purposes
-        console.log('Base64 representation of the selected image:', base64);
+        // console.log('Base64 representation of the selected image:', base64);
       }
     });
   };
@@ -209,7 +192,7 @@ const AddLeave = ({ navigation }) => {
       setSelectedRange(newRange);
 
       // Log the selected range
-      console.log('Selected Range:', newRange);
+    
     } else {
       // Start of a new selection
       setStartDate(dateString);
@@ -227,7 +210,7 @@ const AddLeave = ({ navigation }) => {
       setSelectedRange(newRange);
 
       // Log the selected range
-      console.log('Selected Range:', newRange);
+    
     }
   };
 
@@ -268,19 +251,19 @@ const AddLeave = ({ navigation }) => {
         const businessDays = dayCount - weekendCount;
 
         setDayCounts(businessDays);
-        console.log('businessDays: ', businessDays);
+     
       } else if (start || end) {
         if (start && (start.getDay() === 0 || start.getDay() === 6)) {
           alert('The selected date is a weekend. Please choose a different date.');
           setDayCounts(0);
         } else {
           setDayCounts(1);
-          console.log('businessDays: 1');
+        
         }
       } else {
         // No dates are selected
         setDayCounts(0);
-        console.log('businessDays: 0');
+      
       }
     } else {
       setDayCounts(0);
@@ -367,20 +350,24 @@ const AddLeave = ({ navigation }) => {
       });
 
       if (response.ok) {
+       
         const data = await response.json();
         const submitForm = data.Status
         console.log('data: ', data);
         if (submitForm === 'Succcess') {
           setFormStatus(true)
           // Navigate to the home page
-          navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+          setTimeout(() => {
+            navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+          }, 3000);
         }
         // Handle the response data as needed
       } else {
-        console.error("API request failed with status:", response.status);
+        Alert.alert("Error", "Something went wrong, Try again later");
+        // console.error("API request failed with status:", response.status);
       }
     } catch (error) {
-      console.error("Error occurred during API request:", error);
+      // console.error("Error occurred during API request:", error);
     }
   };
   useEffect(() => {
@@ -403,10 +390,10 @@ const AddLeave = ({ navigation }) => {
           const list = data.Leavelist;
           setLeaveType(list);
         } else {
-          console.error("API request failed with status:", response.status);
+          // console.error("API request failed with status:", response.status);
         }
       } catch (error) {
-        console.error("Error occurred during API request:", error);
+        // console.error("Error occurred during API request:", error);
       }
     };
 
@@ -482,10 +469,11 @@ const AddLeave = ({ navigation }) => {
 
           <View style={styles.content}>
             <Text style={styles.label}>Approver Manager</Text>
-            <Select variant="underlined">
-              <Select.Item label="aaa" value="aaa" />
+            <Input variant="underlined" value={"Admin"} />
+            {/* <Select variant="underlined">
+              <Select.Item label="Admin" value="aaa" />
               <Select.Item label="bbb" value="bbb" />
-            </Select>
+            </Select> */}
             <Text style={styles.label}>Leave Type</Text>
             <Select
               variant="underlined"

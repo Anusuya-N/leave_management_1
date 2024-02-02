@@ -16,13 +16,15 @@ const AttendanceClockScreen = ({ navigation, route }) => {
     const photoData = route.params?.base64Data || null;
     const { email, password, userStatus } = useAuth();
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [displayedData, setDisplayedData] = useState([]);
+    const [submit, setSubmit] = useState(null);
 
     const [showAll, setShowAll] = useState(false);
-    const [submit, setSubmit] = useState(null)
+
     const currentDate = new Date();
     const timeUpdate = async () => {
-
+        const isClockIn = !displayedData.some(entry => entry.ClockIn && isToday(entry.Date));
         const formattedDate = currentDate.toISOString().split('T')[0];
         const formattedTime = currentDate.toLocaleTimeString([], {
             hour: '2-digit',
@@ -34,15 +36,15 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                 Branch: userStatus,
                 EmployeeID: email,
                 InDate: formattedDate,
-                InTime: formattedTime,
-                OutTime: "",
-                outImage: "",
-                InImage: photoData,
+                InTime: isClockIn ? formattedTime : "",
+                OutTime: isClockIn ? "" : formattedTime,
+                outImage: isClockIn ? "" : photoData,
+                InImage: isClockIn ? photoData : "",
             };
-            console.log('InTime: ', requestBody.InTime);
-            console.log('outImage: ', requestBody.outImage);
-            console.log('OutTime: ', requestBody.OutTime);
-            console.log('requestBody: ', requestBody);
+            // console.log('InTime: ', requestBody.InTime);
+            // console.log('outImage: ', requestBody.outImage);
+            // console.log('OutTime: ', requestBody.OutTime);
+            // console.log('requestBody: ', requestBody);
 
             const response = await fetch("http://118.189.74.190:1016/api/emptimeupdate", {
                 method: "POST",
@@ -53,10 +55,14 @@ const AttendanceClockScreen = ({ navigation, route }) => {
             });
 
             if (response.ok) {
+                // setSubmit("Updated Successfully")
+                // setTimeout(() => {
+                //     navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+                //   }, 2000);
                 const data = await response.json();
                 console.log('data: ', data);
                 if (data.Status === "Succcess") {
-                    setSubmit("Updated Successfully")
+
                 }
                 else {
 
@@ -81,6 +87,15 @@ const AttendanceClockScreen = ({ navigation, route }) => {
             console.error("Error occurred during API request:", error);
         }
     };
+    const handleSuccessAndNavigation = () => {
+        // Update the submit state to show the success message
+        setSubmit("Updated Successfully");
+
+        // Navigate to the home page after a delay (adjust the delay as needed)
+        setTimeout(() => {
+            navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+        }, 3000); // 2000 milliseconds (2 seconds) delay as an example
+    };
 
     const attendanceList = async () => {
         try {
@@ -89,11 +104,9 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                 EmployeeId: email,
                 InDate: "2024-02-01",
                 Type: "Inv"
-
             };
 
-
-            const response = await fetch("http://118.189.74.190:1016//api/attendancelistapi", {
+            const response = await fetch("http://118.189.74.190:1016/api/attendancelistapi", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -103,77 +116,63 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
             if (response.ok) {
                 const data = await response.json();
+                if (data && data.attentence && data.attentence.length > 0) {
+                    const processedData = data.attentence.map(entry => ({
+                        ...entry,
+                        Date: entry.Date,
+                        Day: entry.Day,
+                        ClockIn: entry.ClockIn,
+                        ClockOut: entry.ClockOut,
+                        InImage: entry.InImage,
+                    }));
 
-                // Inside the map function
-                const processedData = data.attentence.map(entry => ({
-                    ...entry,
-                    Date: entry.Date,
-                    Day: entry.Day,
-                    ClockIn: entry.ClockIn,
-                    ClockOut: entry.ClockOut,
-                    InImage: entry.InImage,
-                }));
-
-                setDisplayedData(processedData);
-
+                    setDisplayedData(processedData);
+                    // Handle the response data as needed
+                }
+                // Check if data.attendance is defined before mapping
                 // Handle the response data as needed
             } else {
-                console.error("API request failed with status:", response.status);
+                console.error("API request failed with attendance:", response.status);
             }
         } catch (error) {
             console.error("Error occurred during API request:", error);
+        }
+        finally {
+            // Set loading to false once the request is completed (whether successful or not)
+            setLoading(false);
         }
     };
 
     useEffect(() => {
         attendanceList();
-    }, [])
+    }, []);
 
-    useEffect(() => {
-        // Check if there is at least one entry with a ClockIn for today
-        const hasClockInForToday = displayedData.some(
-          entry => entry.ClockIn && isToday(entry.DateIn)
-        );
-      
-        // Log the result of isToday function for all entries
-        displayedData.forEach(entry => {
-          console.log('Entry Date:', entry.Date); // Log the date of the entry
-          console.log('Is today:', isToday(entry.Date));
-        });
-      
-        // Log ClockIn and DateIn values for all entries
-        displayedData.forEach(entry => {
-          console.log('ClockIn:', entry.ClockIn);
-          console.log('DateIn:', entry.Date);
-        });
-      
-        // Log the final button label based on the condition for at least one entry
-        console.log('Button Label:', hasClockInForToday ? 'Clock Out' : 'Clock In');
-      }, [displayedData]); // Make sure to include the dependencies if used inside useEffect
-      
-      
-      
-      
 
-      const isToday = (dateString) => {
+
+
+
+
+
+
+    const isToday = (dateString) => {
         if (!dateString) {
             return false; // Handle undefined date string
         }
-    
+
         const today = new Date();
         const dateParts = dateString.split('/');
         const date = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
-        
+
         return (
             today.getDate() === date.getDate() &&
             today.getMonth() === date.getMonth() &&
             today.getFullYear() === date.getFullYear()
         );
     };
-    
-    
-    
- 
+
+
+
+
     const initialRowCount = 3;
 
 
@@ -206,7 +205,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
 
 
-      
+
 
     const toggleShowAll = () => {
         setShowAll(!showAll);
@@ -266,16 +265,16 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                 {photoData ? (
                                     <></>
 
-                                ) :  <Button
-                                style={styles.checkIn}
-                                onPress={() => navigation.navigate('CameraScreen')}
-                              >
-                                <Text style={styles.checkInTxt}>
-                                  {displayedData.some(entry => entry.ClockIn && isToday(entry.Date))
-                                    ? 'Clock Out'
-                                    : 'Clock In'}
-                                </Text>
-                              </Button>
+                                ) : <Button
+                                    style={styles.checkIn}
+                                    onPress={() => navigation.navigate('CameraScreen')}
+                                >
+                                    <Text style={styles.checkInTxt}>
+                                        {displayedData.some(entry => entry.ClockIn && isToday(entry.Date))
+                                            ? 'Clock Out'
+                                            : 'Clock In'}
+                                    </Text>
+                                </Button>
                                 }
                             </View>
 
@@ -287,13 +286,18 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
 
                         {photoData ? (
-                            <Button mt={3} onPress={timeUpdate}>Submit</Button>
+                            <Button mt={3} onPress={() => {
+                                timeUpdate();
+                                handleSuccessAndNavigation();
+                            }}>
+                                Submit
+                            </Button>
                         ) : null}
 
+                        {submit && <Text style={styles.succMsg}>
+                            {submit}</Text>}
 
-                        <Text style={{ color: 'green', alignItems: 'center', justifyContent: 'center', fontWeight: "bold" }}>
-                            {submit}
-                        </Text>
+
                         <View style={{ marginTop: 10 }}>
                             <Text style={{ fontWeight: "bold", marginLeft: 5 }}>Clock In / Clock Out Status</Text>
                             <View >
@@ -303,21 +307,28 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                     <Text style={styles.headerText}>Clock In</Text>
                                     <Text style={styles.headerText}>Clock Out</Text>
                                 </View>
-                                {displayedData.slice(0, showAll ? data.length : initialRowCount).map((entry, index) => (
-                                    <View style={styles.row} key={index}>
-                                        <View style={styles.dateContainer}>
-                                            <Text style={styles.date}>{entry.Date}</Text>
-                                            <Text style={styles.timeBelow}>{entry.ClockIn}</Text>
-                                        </View>
-                                        <Text style={styles.cell}>{entry.Day}</Text>
-                                        <Text style={[styles.cell, styles.clockIn]}>{entry.ClockIn}</Text>
-                                        <Text style={[styles.cell, styles.clockOut]}>{entry.ClockOut}</Text>
-                                        {/* <Image
-                                            style={styles.image}
-                                            source={{ uri: `data:image/jpeg;base64,${entry.InImage}` }}
-                                        /> */}
+                                {loading && <Text style={{ alignSelf: "center", fontWeight: "bold" }}>Loading...</Text>}
+                                {!loading && displayedData.length === 0 && <Text style={{ alignSelf: "center", fontWeight: "bold",color:"red" }}>No data found</Text>}
+                                {!loading && displayedData.length > 0 && (
+                                    <View>
+                                        {displayedData.slice(0, showAll ? displayedData.length : initialRowCount).map((entry, index) => (
+                                            <View style={styles.row} key={index}>
+                                                <View style={styles.dateContainer}>
+                                                    <Text style={styles.date}>{entry.Date}</Text>
+                                                    <Text style={styles.timeBelow}>{entry.ClockIn}</Text>
+                                                </View>
+                                                <Text style={styles.cell}>{entry.Day}</Text>
+                                                <Text style={[styles.cell, styles.clockIn]}>{entry.ClockIn}</Text>
+                                                <Text style={[styles.cell, styles.clockOut]}>{entry.ClockOut}</Text>
+                                                {/* Uncomment the Image component when ready to display images */}
+                                                {/* <Image
+                                style={styles.image}
+                                source={{ uri: `data:image/jpeg;base64,${entry.InImage}` }}
+                            /> */}
+                                            </View>
+                                        ))}
                                     </View>
-                                ))}
+                                )}
                                 {renderViewButton()}
                             </View>
                         </View>
@@ -483,6 +494,13 @@ const styles = StyleSheet.create({
         width: 100, // Set your desired width
         height: 100, // Set your desired height
     },
+    succMsg: {
+        color: "green",
+        justifyContent: "center",
+        alignSelf: "center",
+        fontWeight: "bold",
+        marginTop: 2,
+    },
 });
 
 export default AttendanceClockScreen;
@@ -510,14 +528,14 @@ const LocationScreen = ({ navigation }) => {
             try {
                 const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
                 if (result === 'granted') {
-                    console.log('Location permission granted');
+                    // console.log('Location permission granted');
                     return true;
                 } else {
-                    console.log('Location permission denied');
+                    // console.log('Location permission denied');
                     throw new Error('Location permission denied.');
                 }
             } catch (err) {
-                console.log('Request Location Permission Error:', err);
+                // console.log('Request Location Permission Error:', err);
                 return false;
             }
         };
@@ -537,7 +555,7 @@ const LocationScreen = ({ navigation }) => {
                     setAddress('Address not found');
                 }
             } catch (err) {
-                console.log('Reverse Geocoding Error:', err);
+                // console.log('Reverse Geocoding Error:', err);
                 setAddress('Error fetching address');
             }
         };
