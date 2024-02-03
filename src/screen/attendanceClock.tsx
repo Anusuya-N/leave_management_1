@@ -32,6 +32,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
         });
 
         try {
+            
             const requestBody = {
                 Branch: userStatus,
                 EmployeeID: email,
@@ -55,10 +56,10 @@ const AttendanceClockScreen = ({ navigation, route }) => {
             });
 
             if (response.ok) {
-                // setSubmit("Updated Successfully")
-                // setTimeout(() => {
-                //     navigation.navigate('Home'); // Replace 'Home' with your actual home page route
-                //   }, 2000);
+                setSubmit("Updated Successfully")
+                setTimeout(() => {
+                    navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+                }, 2000);
                 const data = await response.json();
                 console.log('data: ', data);
                 if (data.Status === "Succcess") {
@@ -87,15 +88,15 @@ const AttendanceClockScreen = ({ navigation, route }) => {
             console.error("Error occurred during API request:", error);
         }
     };
-    const handleSuccessAndNavigation = () => {
-        // Update the submit state to show the success message
-        setSubmit("Updated Successfully");
+    // const handleSuccessAndNavigation = () => {
+    //     // Update the submit state to show the success message
+    //     setSubmit("Updated Successfully");
 
-        // Navigate to the home page after a delay (adjust the delay as needed)
-        setTimeout(() => {
-            navigation.navigate('Home'); // Replace 'Home' with your actual home page route
-        }, 3000); // 2000 milliseconds (2 seconds) delay as an example
-    };
+    //     // Navigate to the home page after a delay (adjust the delay as needed)
+    //     setTimeout(() => {
+    //         navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+    //     }, 3000); // 2000 milliseconds (2 seconds) delay as an example
+    // };
 
     const attendanceList = async () => {
         try {
@@ -266,8 +267,31 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                     <></>
 
                                 ) : <Button
-                                    style={styles.checkIn}
-                                    onPress={() => navigation.navigate('CameraScreen')}
+                                    style={[
+                                        styles.checkIn,
+                                        {
+                                            backgroundColor: displayedData.some(
+                                                entry => entry.ClockIn && isToday(entry.Date) && entry.ClockIn !== entry.ClockOut
+                                            )
+                                                ? 'red'
+                                                : 'green', // Replace 'your-default-color' with the default color you want
+                                        },
+                                    ]}
+                                    onPress={() => {
+                                        const todayEntry = displayedData.find(
+                                            entry => entry.ClockIn && isToday(entry.Date)
+                                        );
+
+                                        if (todayEntry && todayEntry.ClockOut !== todayEntry.ClockIn) {
+                                            // If ClockIn and ClockOut have different times, do nothing (button not pressable)
+                                            return;
+                                        }
+
+                                        navigation.navigate('CameraScreen');
+                                    }}
+                                    disabled={displayedData.some(
+                                        entry => entry.ClockIn && isToday(entry.Date) && entry.ClockIn !== entry.ClockOut
+                                    )}
                                 >
                                     <Text style={styles.checkInTxt}>
                                         {displayedData.some(entry => entry.ClockIn && isToday(entry.Date))
@@ -286,10 +310,8 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
 
                         {photoData ? (
-                            <Button mt={3} onPress={() => {
-                                timeUpdate();
-                                handleSuccessAndNavigation();
-                            }}>
+                            <Button mt={3} onPress={
+                                timeUpdate}>
                                 Submit
                             </Button>
                         ) : null}
@@ -308,7 +330,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                     <Text style={styles.headerText}>Clock Out</Text>
                                 </View>
                                 {loading && <Text style={{ alignSelf: "center", fontWeight: "bold" }}>Loading...</Text>}
-                                {!loading && displayedData.length === 0 && <Text style={{ alignSelf: "center", fontWeight: "bold",color:"red" }}>No data found</Text>}
+                                {!loading && displayedData.length === 0 && <Text style={{ alignSelf: "center", fontWeight: "bold", color: "red" }}>No data found</Text>}
                                 {!loading && displayedData.length > 0 && (
                                     <View>
                                         {displayedData.slice(0, showAll ? displayedData.length : initialRowCount).map((entry, index) => (
@@ -378,7 +400,7 @@ const styles = StyleSheet.create({
         textTransform: "uppercase"
     },
     checkIn: {
-        backgroundColor: "green",
+
         marginTop: 30,
         height: 40,
     },

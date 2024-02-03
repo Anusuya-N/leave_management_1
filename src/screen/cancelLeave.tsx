@@ -258,9 +258,7 @@ export default function cancelLeave({ navigation }) {
                                         // Check if the formattedLeaveDate is greater than or equal to formattedCurrentDate
                                         const isLeaveDateValid = formattedLeaveDate >= formattedCurrentDate;
 
-                                        console.log('Original LeaveDate:', item.LeaveDate);
-                                        console.log('Formatted LeaveDate:', formattedLeaveDate);
-                                        console.log('Is LeaveDate Valid:', isLeaveDateValid);
+                           
 
 
 

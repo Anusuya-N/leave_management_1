@@ -18,7 +18,7 @@ import { Button, Select, Radio, HStack, Input, VStack, Box } from 'native-base';
 import Sidebar from '../layout/SideBar';
 import { Calendar } from 'react-native-calendars';
 import { useAuth } from '../context/AuthContext';
-import { launchImageLibrary,launchCamera } from 'react-native-image-picker';
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import Header from '../layout/header';
 import Modal from 'react-native-modal';
@@ -41,6 +41,7 @@ const AddLeave = ({ navigation }) => {
   const [selectedLeave, setSelectedLeave] = useState('');
   const [selectedRadioValue, setSelectedRadioValue] = useState('');
   const [startDateSelection, setStartDateSelection] = useState(null); // Can be "AM", "PM", or null
+  const [submit, setSubmit] = useState(null); // Can be "AM", "PM", or null
 
 
   const [endDateSelection, setEndDateSelection] = useState(null); // Can be "AM", "PM", or null
@@ -48,17 +49,28 @@ const AddLeave = ({ navigation }) => {
   const [singleRadioValue, setSingleRadioValue] = useState('');
 
   const [noonType, setNoonType] = useState('');
- 
+
   const [expandedPreview, setExpandedPreview] = useState(false);
   const [imageBase64, setImageBase64] = useState(null);
- 
+
   const [imageUri, setImageUri] = useState(null);
   const [imageName, setImageName] = useState(null);
   const [formStatus, setFormStatus] = useState(false);
+  const [validationError, setValidationError] = useState('');
+
+  const handleValidation = () => {
+    if (!selectedLeave || !startDate) {
+      setValidationError('Please fill the mandatory field');
+      return false;
+    } else {
+      setValidationError('');
+      return true;
+    }
+  };
 
 
 
- 
+
   const toggleExpandedPreview = () => {
     setExpandedPreview(!expandedPreview);
   };
@@ -143,10 +155,10 @@ const AddLeave = ({ navigation }) => {
     if (hasPermission) {
       launchCamera({ mediaType: 'photo', includeBase64: true, cameraType: 'back' }, (response) => {
         if (!response.didCancel && !response.error) {
-                const uri = response.assets?.[0]?.uri || response.uri;
-                const base64 = response.assets?.[0]?.base64 || response.base64;
-                setImageBase64(base64)
-                setSelectedImage(uri);
+          const uri = response.assets?.[0]?.uri || response.uri;
+          const base64 = response.assets?.[0]?.base64 || response.base64;
+          setImageBase64(base64)
+          setSelectedImage(uri);
         }
       });
     }
@@ -192,7 +204,7 @@ const AddLeave = ({ navigation }) => {
       setSelectedRange(newRange);
 
       // Log the selected range
-    
+
     } else {
       // Start of a new selection
       setStartDate(dateString);
@@ -210,7 +222,7 @@ const AddLeave = ({ navigation }) => {
       setSelectedRange(newRange);
 
       // Log the selected range
-    
+
     }
   };
 
@@ -251,19 +263,19 @@ const AddLeave = ({ navigation }) => {
         const businessDays = dayCount - weekendCount;
 
         setDayCounts(businessDays);
-     
+
       } else if (start || end) {
         if (start && (start.getDay() === 0 || start.getDay() === 6)) {
-          alert('The selected date is a weekend. Please choose a different date.');
+          Alert.alert('The selected date is a weekend. Please choose a different date.');
           setDayCounts(0);
         } else {
           setDayCounts(1);
-        
+
         }
       } else {
         // No dates are selected
         setDayCounts(0);
-      
+
       }
     } else {
       setDayCounts(0);
@@ -295,7 +307,7 @@ const AddLeave = ({ navigation }) => {
 
   const leaveUpdate = async () => {
     try {
-
+      setSubmit("Please Wait while submitting....")
       let lType;
       let nDays = dayCounts;
 
@@ -350,7 +362,7 @@ const AddLeave = ({ navigation }) => {
       });
 
       if (response.ok) {
-       
+
         const data = await response.json();
         const submitForm = data.Status
         console.log('data: ', data);
@@ -368,6 +380,9 @@ const AddLeave = ({ navigation }) => {
       }
     } catch (error) {
       // console.error("Error occurred during API request:", error);
+    }
+    finally {
+      setSubmit("")
     }
   };
   useEffect(() => {
@@ -442,6 +457,7 @@ const AddLeave = ({ navigation }) => {
     return `${year}-${formattedMonth}-01`;
   };
 
+
   return (
     <View style={styles.container}>
 
@@ -474,24 +490,31 @@ const AddLeave = ({ navigation }) => {
               <Select.Item label="Admin" value="aaa" />
               <Select.Item label="bbb" value="bbb" />
             </Select> */}
-            <Text style={styles.label}>Leave Type</Text>
+            <Text style={styles.label}>Leave Type <Text style={{ color: 'red' }}>*</Text></Text>
             <Select
               variant="underlined"
               selectedValue={selectedLeave}
-              onValueChange={handleSelectChange}
+              onValueChange={(value) => {
+                handleSelectChange(value);
+                setValidationError('');
+              }}
             >
               {leaveType.map(leaveOption => (
                 <Select.Item key={leaveOption.name} label={leaveOption.name} value={leaveOption.code} />
               ))}
             </Select>
-
+            <Text style={styles.label}>Select Date <Text style={{ color: 'red' }}>*</Text></Text>
             <Calendar
               style={styles.calendar}
-             current={getCurrentMonth()}
-              onDayPress={handleDayPress}
+              current={getCurrentMonth()}
+              onDayPress={(day) => {
+                handleDayPress(day);
+                setValidationError(''); // Clear validation error on date selection
+              }}
               markingType="period"
               markedDates={selectedRange}
             />
+
 
             <View>
               {startDate && endDate ? (
@@ -677,38 +700,49 @@ const AddLeave = ({ navigation }) => {
                 <Image source={{ uri: selectedImage }} style={styles.selectedImage} />
               </View>
             )}
+            <Text style={styles.succMsg}>{submit}</Text>
             {formStatus ? (
               <Text style={styles.succMsg}>Leave Applied Successfully</Text>
             ) : null}
+
+
+            {validationError && <Text style={styles.errMsg} >{validationError}</Text>}
+
             <View style={styles.finalBtn} >
               <Button onPress={() => setModalVisible(true)} style={{ backgroundColor: "#054582" }} alignSelf={"center"}   >
                 <Text style={{ color: "white" }}>UPLOAD PHOTO</Text>
               </Button>
-              <Button onPress={leaveUpdate} style={{ backgroundColor: "#054582" }} alignSelf={"center"} >
+              <Button onPress={() => {
+                if (selectedLeave && startDate) {
+                  leaveUpdate();
+                } else {
+                  handleValidation()
+                }
+              }} style={{ backgroundColor: "#054582" }} alignSelf={"center"} >
                 <Text style={{ color: "white" }}>SUBMIT</Text>
               </Button>
             </View>
             <Modal
-        isVisible={modalVisible}
-        onBackdropPress={() => setModalVisible(false)}
-        style={styles.modal}
-      >
-        <View style={styles.modalContainer}>
-        <View style={styles.rowContainer}>
-        <TouchableOpacity onPress={() => { setModalVisible(false); openCamera(); }}>
-          <Image source={require('../../assets/Apply/camera.png')} style={styles.icon} />
-            <Text style={styles.modalOption}>Take Photo</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {setModalVisible(false); openImagePicker()}}>
-          <Image source={require('../../assets/Apply/photo.png')} style={styles.icon} />
-            <Text style={styles.modalOption}>Choose from Gallery</Text>
-          </TouchableOpacity>
-          </View>
-          <TouchableOpacity onPress={() => setModalVisible(false)}>
-            <Text style={styles.modalCancel}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+              isVisible={modalVisible}
+              onBackdropPress={() => setModalVisible(false)}
+              style={styles.modal}
+            >
+              <View style={styles.modalContainer}>
+                <View style={styles.rowContainer}>
+                  <TouchableOpacity onPress={() => { setModalVisible(false); openCamera(); }}>
+                    <Image source={require('../../assets/Apply/camera.png')} style={styles.icon} />
+                    <Text style={styles.modalOption}>Take Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => { setModalVisible(false); openImagePicker() }}>
+                    <Image source={require('../../assets/Apply/photo.png')} style={styles.icon} />
+                    <Text style={styles.modalOption}>Choose from Gallery</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Text style={styles.modalCancel}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </Modal>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -822,6 +856,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 3,
   },
+  errMsg: {
+    color: "red",
+    justifyContent: "center",
+    alignSelf: "center",
+    fontWeight: "bold",
+    marginTop: 3,
+  },
   finalBtn: {
     display: "flex",
     flexDirection: "row",
@@ -855,8 +896,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'red',
     marginTop: 20,
-  
- 
+
+
   },
   rowContainer: {
     flexDirection: 'row',
@@ -864,7 +905,7 @@ const styles = StyleSheet.create({
     // marginBottom: 10,
   },
   icon: {
-    alignSelf:"center"
+    alignSelf: "center"
   },
 });
 
