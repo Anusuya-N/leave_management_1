@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, Image, Pressable, Platform, TouchableOpacity, PermissionsAndroid, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, Image, Pressable, Platform, TouchableOpacity, PermissionsAndroid, Alert, Linking, TouchableWithoutFeedback } from 'react-native';
 import { Button, HStack, VStack } from "native-base";
 import Geolocation from '@react-native-community/geolocation';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
@@ -19,6 +19,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
     const [loading, setLoading] = useState(true);
     const [displayedData, setDisplayedData] = useState([]);
     const [submit, setSubmit] = useState(null);
+    const [sub, setSub] = useState(null);
 
     const [showAll, setShowAll] = useState(false);
 
@@ -32,7 +33,8 @@ const AttendanceClockScreen = ({ navigation, route }) => {
         });
 
         try {
-            
+
+            setSub("Please wait while submitting....")
             const requestBody = {
                 Branch: userStatus,
                 EmployeeID: email,
@@ -57,9 +59,9 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
             if (response.ok) {
                 setSubmit("Updated Successfully")
-                setTimeout(() => {
-                    navigation.navigate('Home'); // Replace 'Home' with your actual home page route
-                }, 2000);
+                // setTimeout(() => {
+                //     navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+                // }, 2000);
                 const data = await response.json();
                 console.log('data: ', data);
                 if (data.Status === "Succcess") {
@@ -86,6 +88,9 @@ const AttendanceClockScreen = ({ navigation, route }) => {
             }
         } catch (error) {
             console.error("Error occurred during API request:", error);
+        }
+        finally {
+            setSub("")
         }
     };
     // const handleSuccessAndNavigation = () => {
@@ -149,7 +154,9 @@ const AttendanceClockScreen = ({ navigation, route }) => {
     }, []);
 
 
-
+    const handleRowPress = (selectedDate) => {
+        navigation.navigate("AttendanceDetails", { selectedDate, displayedData });
+    };
 
 
 
@@ -174,10 +181,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
 
 
-    const initialRowCount = 3;
-
-
-
+  
 
 
     const toggleDrawer = () => {
@@ -207,26 +211,33 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
 
 
-
+    const initialRowCount = 7;
     const toggleShowAll = () => {
         setShowAll(!showAll);
     };
     const renderViewButton = () => {
-        if (showAll) {
-            return (
-                <TouchableOpacity onPress={toggleShowAll} style={styles.viewMoreButton}>
-                    <Text style={styles.viewMoreText}>View Less</Text>
-                </TouchableOpacity>
-            );
+        if (displayedData.length > 7) {
+            if (showAll) {
+                return (
+                    <TouchableOpacity onPress={toggleShowAll} style={styles.viewMoreButton}>
+                        <Text style={styles.viewMoreText}>View Less</Text>
+                    </TouchableOpacity>
+                );
+            } else {
+                return (
+                    <TouchableOpacity onPress={toggleShowAll} style={styles.viewMoreButton}>
+                        <Text style={styles.viewMoreText}>View More</Text>
+                    </TouchableOpacity>
+                );
+            }
         } else {
-            return (
-                <TouchableOpacity onPress={toggleShowAll} style={styles.viewMoreButton}>
-                    <Text style={styles.viewMoreText}>View More</Text>
-                </TouchableOpacity>
-            );
+            return null; // Hide the button if there are 7 or fewer items
         }
     };
-
+    
+    const todayEntry = displayedData.find(
+        entry => entry.ClockIn && isToday(entry.Date)
+    );
 
     return (
         <View style={styles.container}>
@@ -263,7 +274,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                 </Text>
                             </View>
                             <View style={{ flex: 1 }}>
-                                {photoData ? (
+                                {photoData || (todayEntry && todayEntry.ClockOut !== todayEntry.ClockIn) ? (
                                     <></>
 
                                 ) : <Button
@@ -271,16 +282,16 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                         styles.checkIn,
                                         {
                                             backgroundColor: displayedData.some(
+                                                entry => entry.ClockIn && isToday(entry.Date)
+                                            ) || displayedData.some(
                                                 entry => entry.ClockIn && isToday(entry.Date) && entry.ClockIn !== entry.ClockOut
                                             )
                                                 ? 'red'
-                                                : 'green', // Replace 'your-default-color' with the default color you want
+                                                : 'green',
                                         },
                                     ]}
                                     onPress={() => {
-                                        const todayEntry = displayedData.find(
-                                            entry => entry.ClockIn && isToday(entry.Date)
-                                        );
+
 
                                         if (todayEntry && todayEntry.ClockOut !== todayEntry.ClockIn) {
                                             // If ClockIn and ClockOut have different times, do nothing (button not pressable)
@@ -315,7 +326,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                 Submit
                             </Button>
                         ) : null}
-
+                        <Text style={styles.succMsg}>{sub}</Text>
                         {submit && <Text style={styles.succMsg}>
                             {submit}</Text>}
 
@@ -334,6 +345,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                 {!loading && displayedData.length > 0 && (
                                     <View>
                                         {displayedData.slice(0, showAll ? displayedData.length : initialRowCount).map((entry, index) => (
+                                           <TouchableWithoutFeedback key={index} onPress={() => handleRowPress(entry.Date)}>
                                             <View style={styles.row} key={index}>
                                                 <View style={styles.dateContainer}>
                                                     <Text style={styles.date}>{entry.Date}</Text>
@@ -348,6 +360,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                 source={{ uri: `data:image/jpeg;base64,${entry.InImage}` }}
                             /> */}
                                             </View>
+                                            </TouchableWithoutFeedback>
                                         ))}
                                     </View>
                                 )}
@@ -528,36 +541,27 @@ const styles = StyleSheet.create({
 export default AttendanceClockScreen;
 
 
-
-
-
-
-
-
-
-
-
-
-
 const LocationScreen = ({ navigation }) => {
     const [location, setLocation] = useState(null);
     const [address, setAddress] = useState('');
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 60000,
+            maximumAge: 10000,
+        };
+
         const requestLocationPermission = async () => {
             try {
                 const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
                 if (result === 'granted') {
-                    // console.log('Location permission granted');
                     return true;
                 } else {
-                    // console.log('Location permission denied');
                     throw new Error('Location permission denied.');
                 }
             } catch (err) {
-                // console.log('Request Location Permission Error:', err);
                 return false;
             }
         };
@@ -568,6 +572,8 @@ const LocationScreen = ({ navigation }) => {
                     latitude
                 )}&lon=${encodeURIComponent(longitude)}`;
 
+
+
                 const response = await fetch(url);
                 const result = await response.json();
 
@@ -577,7 +583,7 @@ const LocationScreen = ({ navigation }) => {
                     setAddress('Address not found');
                 }
             } catch (err) {
-                // console.log('Reverse Geocoding Error:', err);
+                console.log('Reverse Geocoding Error:', err);
                 setAddress('Error fetching address');
             }
         };
@@ -586,7 +592,7 @@ const LocationScreen = ({ navigation }) => {
             setError('Error fetching location: ' + err.message);
 
             if (err.code === 2) {
-                // No location provider available
+
                 Alert.alert(
                     'Location Services Unavailable',
                     'Please make sure your device has location services enabled.',
@@ -595,54 +601,61 @@ const LocationScreen = ({ navigation }) => {
                             text: 'OK',
                             onPress: () => {
                                 console.log('OK Pressed');
-                                // Navigate back to the home page
-                                navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+
+                                navigation.navigate('Home');
                             },
                         },
-                        // {
-                        //     text: 'Enable Location',
-                        //     onPress: () => openDeviceLocationSettings(),
-                        // },
+                        //   {
+                        //       text: 'Enable Location',
+                        //       onPress: () => openDeviceLocationSettings(),
+                        //   },
                     ]
                 );
             }
         };
 
-        const checkAndFetchLocation = async () => {
+
+        const watchLocation = async () => {
             try {
                 const hasPermission = await requestLocationPermission();
                 if (hasPermission) {
-                    Geolocation.getCurrentPosition(
+                    const watchId = Geolocation.watchPosition(
                         position => {
                             console.log('Location Success:', position);
                             setLocation(position.coords);
                             fetchAddress(position.coords.latitude, position.coords.longitude);
-                            setLoading(false);
                         },
                         err => {
                             console.log('Location Error:', err);
                             handleLocationError(err);
-                            setLoading(false);
                         },
-                        { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
+                        options
                     );
+
+                    // Return the watchId so it can be cleared later
+                    return watchId;
                 } else {
                     throw new Error('Location permission not granted.');
                 }
             } catch (err) {
-                console.log('Check and Fetch Location Error:', err);
-                setError('Error checking or fetching location: ' + err.message);
-                setLoading(false);
+                console.log('Error watching location:', err);
+                setError('Error watching location: ' + err.message);
+                return null; // Return null in case of an error
             }
         };
 
-        checkAndFetchLocation();
-    }, []);
+        // Start watching location
+        const watchIdPromise = watchLocation();
 
-    const openDeviceLocationSettings = () => {
-        Linking.openURL('content://com.android.settings/settings/location');
-    };
-
+        // Cleanup function
+        return () => {
+            watchIdPromise.then(watchId => {
+                if (watchId !== null) {
+                    Geolocation.clearWatch(watchId); // Clear the watch when the component unmounts
+                }
+            });
+        };
+    }, []); // Empty dependency array means this effect runs once when the component mounts
 
 
     return (
@@ -661,9 +674,7 @@ const LocationScreen = ({ navigation }) => {
                     </View>
                     <View style={styles.hStack}>
                         <Image source={require('../../assets/Attendance/location.png')} />
-
-                        <Text>{address}</Text>
-
+                        <Text>Address: {address}</Text>
                     </View>
                 </View>
             ) : (
@@ -671,6 +682,7 @@ const LocationScreen = ({ navigation }) => {
             )}
             {/* Rest of your component JSX */}
         </View>
+
     );
 };
 
@@ -678,8 +690,142 @@ const LocationScreen = ({ navigation }) => {
 
 
 
+// const LocationScreen = ({ navigation }) => {
+//     const [location, setLocation] = useState(null);
+//     const [address, setAddress] = useState('');
+//     const [error, setError] = useState(null);
+//     const [loading, setLoading] = useState(true);
+
+//     useEffect(() => {
+//         const requestLocationPermission = async () => {
+//             try {
+//                 const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+//                 if (result === 'granted') {
+//                     // console.log('Location permission granted');
+//                     return true;
+//                 } else {
+//                     // console.log('Location permission denied');
+//                     throw new Error('Location permission denied.');
+//                 }
+//             } catch (err) {
+//                 // console.log('Request Location Permission Error:', err);
+//                 return false;
+//             }
+//         };
+
+//         const fetchAddress = async (latitude, longitude) => {
+//             try {
+//                 const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
+//                     latitude
+//                 )}&lon=${encodeURIComponent(longitude)}`;
+//                 // const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&no_annotations=1`;
 
 
+//                 const response = await fetch(url);
+//                 const result = await response.json();
+
+//                 if (result.display_name) {
+//                     setAddress(result.display_name);
+//                 } else {
+//                     setAddress('Address not found');
+//                 }
+//             } catch (err) {
+//                 // console.log('Reverse Geocoding Error:', err);
+//                 setAddress('Error fetching address');
+//             }
+//         };
+
+//         const handleLocationError = err => {
+//             setError('Error fetching location: ' + err.message);
+
+//             if (err.code === 2) {
+//                 // No location provider available
+//                 Alert.alert(
+//                     'Location Services Unavailable',
+//                     'Please make sure your device has location services enabled.',
+//                     [
+//                         {
+//                             text: 'OK',
+//                             onPress: () => {
+//                                 console.log('OK Pressed');
+//                                 // Navigate back to the home page
+//                                 navigation.navigate('Home'); // Replace 'Home' with your actual home page route
+//                             },
+//                         },
+//                         // {
+//                         //     text: 'Enable Location',
+//                         //     onPress: () => openDeviceLocationSettings(),
+//                         // },
+//                     ]
+//                 );
+//             }
+//         };
+
+//         const checkAndFetchLocation = async () => {
+//             try {
+//                 const hasPermission = await requestLocationPermission();
+//                 if (hasPermission) {
+//                     Geolocation.getCurrentPosition(
+//                         position => {
+//                             console.log('Location Success:', position);
+//                             setLocation(position.coords);
+//                             fetchAddress(position.coords.latitude, position.coords.longitude);
+//                             setLoading(false);
+//                         },
+//                         err => {
+//                             console.log('Location Error:', err);
+//                             handleLocationError(err);
+//                             setLoading(false);
+//                         },
+//                         { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
+//                     );
+//                 } else {
+//                     throw new Error('Location permission not granted.');
+//                 }
+//             } catch (err) {
+//                 console.log('Check and Fetch Location Error:', err);
+//                 setError('Error checking or fetching location: ' + err.message);
+//                 setLoading(false);
+//             }
+//         };
+
+//         checkAndFetchLocation();
+//     }, []);
+
+//     const openDeviceLocationSettings = () => {
+//         Linking.openURL('content://com.android.settings/settings/location');
+//     };
+
+
+
+//     return (
+//         <View style={{ marginTop: 5, alignItems: 'center' }}>
+//             {error ? (
+//                 <Text>{error}</Text>
+//             ) : location ? (
+//                 <View style={styles.location}>
+//                     <View style={styles.hStack}>
+//                         <Image source={require('../../assets/Attendance/lat.png')} />
+//                         <Text>Latitude: {location.latitude}</Text>
+//                     </View>
+//                     <View style={styles.hStack}>
+//                         <Image source={require('../../assets/Attendance/lon.png')} />
+//                         <Text>Longitude: {location.longitude}</Text>
+//                     </View>
+//                     <View style={styles.hStack}>
+//                         <Image source={require('../../assets/Attendance/location.png')} />
+
+//                         <Text>{address}</Text>
+
+//                     </View>
+//                 </View>
+//             ) : (
+//                 <Text>Loading location...</Text>
+//             )}
+//             {/* Rest of your component JSX */}
+//         </View>
+//     );
+// }
 
 
 

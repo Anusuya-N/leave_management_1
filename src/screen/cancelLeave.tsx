@@ -23,7 +23,6 @@ import Header from '../layout/header';
 export default function cancelLeave({ navigation }) {
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [leaveData, setLeaveData] = useState([]);
-    console.log('leaveData: ', leaveData);
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
     const { email } = useAuth()
     const [selectedYear, setSelectedYear] = useState(null);

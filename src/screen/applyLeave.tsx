@@ -42,7 +42,8 @@ const AddLeave = ({ navigation }) => {
   const [selectedRadioValue, setSelectedRadioValue] = useState('');
   const [startDateSelection, setStartDateSelection] = useState(null); // Can be "AM", "PM", or null
   const [submit, setSubmit] = useState(null); // Can be "AM", "PM", or null
-
+  const [approver, setApprover] = useState('');
+  const [options, setOptions] = useState([]);
 
   const [endDateSelection, setEndDateSelection] = useState(null); // Can be "AM", "PM", or null
 
@@ -307,7 +308,7 @@ const AddLeave = ({ navigation }) => {
 
   const leaveUpdate = async () => {
     try {
-      setSubmit("Please Wait while submitting....")
+      setSubmit("Please wait while submitting....")
       let lType;
       let nDays = dayCounts;
 
@@ -415,6 +416,44 @@ const AddLeave = ({ navigation }) => {
     // Call the API request function when the component mounts
     leaveTypeList();
   }, [userStatus]);
+  useEffect(() => {
+    const approverList = async () => {
+      try {
+        const requestBody = {
+          BranchCode: userStatus,
+          NricID:email
+        };
+
+        const response = await fetch("http://118.189.74.190:1016/api/approverlistapi", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const name = data.Approverlist[0].name;
+          setApprover(name);
+
+          // Create options array for the dropdown
+          const approverOptions = data.Approverlist.map(approver => ({
+            value: approver.name,
+            label: approver.name,
+          }));
+          setOptions(approverOptions);
+        }else {
+          // console.error("API request failed with status:", response.status);
+        }
+      } catch (error) {
+        // console.error("Error occurred during API request:", error);
+      }
+    };
+
+    // Call the API request function when the component mounts
+    approverList();
+  }, [userStatus,email]);
 
   const handleSelectChange = (itemValue) => {
     setSelectedLeave(itemValue);
@@ -485,7 +524,17 @@ const AddLeave = ({ navigation }) => {
 
           <View style={styles.content}>
             <Text style={styles.label}>Approver Manager</Text>
-            <Input variant="underlined" value={"Admin"} />
+            <Select
+        selectedValue={approver}
+        onValueChange={(value) => {
+          setApprover(value);
+          setValidationError('');
+        }}
+      >
+        {options.map((option, index) => (
+          <Select.Item key={index} label={option.label} value={option.value} />
+        ))}
+      </Select>
             {/* <Select variant="underlined">
               <Select.Item label="Admin" value="aaa" />
               <Select.Item label="bbb" value="bbb" />

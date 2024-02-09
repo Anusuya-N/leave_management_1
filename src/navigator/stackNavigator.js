@@ -14,6 +14,7 @@ import AttendanceClockScreen from '../screen/attendanceClock';
 import CameraScreen from '../screen/CameraScreen';
 import ClaimPage from '../screen/claimPage';
 import AddLeave from '../screen/applyLeave';
+import AttendanceDetails from '../screen/AttendanceDetails';
 
 const AuthStack = createStackNavigator();
 const AuthStackScreen = () => (
@@ -100,6 +101,11 @@ export default function RootStackScreen() {
             component={AddLeave}
             options={{ title: 'AddLeave' }}
           />
+          <RootStack.Screen
+            name="AttendanceDetails"
+            component={AttendanceDetails}
+            options={{ title: 'AttendanceDetails' }}
+          />
 
         </>
       ) : (
@@ -115,6 +121,7 @@ export default function RootStackScreen() {
       <RootStack.Screen name="CameraScreen" component={CameraScreen} options={{ title: 'CameraScreen' }} />
       <RootStack.Screen name="ClaimPage" component={ClaimPage} options={{ title: 'ClaimPage' }} />
       <RootStack.Screen name="AddLeave" component={AddLeave} options={{ title: 'AddLeave' }} />
+      <RootStack.Screen name="AttendanceDetails" component={AttendanceDetails} options={{ title: 'AttendanceDetails' }} />
       <RootStack.Screen
         name="Sidebar"
         component={Sidebar}
