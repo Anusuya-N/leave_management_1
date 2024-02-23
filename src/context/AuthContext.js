@@ -6,6 +6,7 @@ export const AuthProvider = ({ children }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [userStatus, setUserStatus] = useState(null);
+    const [leaveLoad, setLeaveLoad] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -43,7 +44,9 @@ export const AuthProvider = ({ children }) => {
                 password,
                 setPassword,
                 userStatus,
-                setUserStatus
+                setUserStatus,
+                setLeaveLoad,
+                leaveLoad
             }}>
             {children}
         </AuthContext.Provider>

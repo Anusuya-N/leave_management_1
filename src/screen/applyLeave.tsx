@@ -31,7 +31,7 @@ import Modal from 'react-native-modal';
 
 const AddLeave = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { email, userStatus } = useAuth()
+  const { email, userStatus,setLeaveLoad,leaveLoad } = useAuth()
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [selectedRange, setSelectedRange] = useState({});
   const [startDate, setStartDate] = useState(null);
@@ -308,6 +308,7 @@ const AddLeave = ({ navigation }) => {
 
   const leaveUpdate = async () => {
     try {
+      setLeaveLoad(!leaveLoad)
       setSubmit("Please wait while submitting....")
       let lType;
       let nDays = dayCounts;

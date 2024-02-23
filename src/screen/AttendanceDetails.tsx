@@ -64,6 +64,15 @@ const AttendanceDetails = ({ navigation, route }) => {
                                         style={styles.image}
                                         source={{ uri: `data:image/jpeg;base64,${entry.InImage}` }}
                                     />
+                                       <Text style={styles.label}>In Latitude</Text>
+                                    <View style={styles.inputContainer}>
+                                        <Text style={styles.inputText}>{entry.inlatitude}</Text>
+                                    </View>
+                                    <Text style={styles.label}>In Address</Text>
+                                    <View style={styles.inputContainer}>
+                                        <Text style={styles.inputText}>{entry.inlocation}</Text>
+                                    </View>
+
                                     <Text style={styles.label}>Out Time</Text>
                                     <View style={styles.inputContainer}>
                                         <Text style={styles.inputText}>{entry.ClockOut}</Text>
@@ -73,6 +82,14 @@ const AttendanceDetails = ({ navigation, route }) => {
                                         style={styles.image}
                                         source={{ uri: `data:image/jpeg;base64,${entry.OutImage}` }}
                                     />
+                                          <Text style={styles.label}>Out Latitude</Text>
+                                    <View style={styles.inputContainer}>
+                                        <Text style={styles.inputText}>{entry.outlatitude}</Text>
+                                    </View>
+                                    <Text style={styles.label}>Out Address</Text>
+                                    <View style={styles.inputContainer}>
+                                        <Text style={styles.inputText}>{entry.outlocation}</Text>
+                                    </View>
                                 </View>
 
 

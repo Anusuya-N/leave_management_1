@@ -20,6 +20,22 @@ const AttendanceClockScreen = ({ navigation, route }) => {
     const [displayedData, setDisplayedData] = useState([]);
     const [submit, setSubmit] = useState(null);
     const [sub, setSub] = useState(null);
+    const [inLatitude, setInLatitude] = useState(null);
+    console.log('inLatitude: ', inLatitude);
+   
+    const [inLocation, setInLocation] = useState('');
+    console.log('inLocation: ', inLocation);
+   
+
+    // Callback function to receive location data from LocationScreen
+    const handleLocationData = (inLat, inLoc) => {
+        setInLatitude(inLat);
+       
+        setInLocation(inLoc);
+      
+    };
+
+
 
     const [showAll, setShowAll] = useState(false);
 
@@ -43,6 +59,11 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                 OutTime: isClockIn ? "" : formattedTime,
                 outImage: isClockIn ? "" : photoData,
                 InImage: isClockIn ? photoData : "",
+                outlatitude:isClockIn ? "" : inLatitude,
+                inlatitude:isClockIn ? inLatitude : "",
+                inlocation: isClockIn ? inLocation : "",
+                outlocation:isClockIn ? "" : inLocation,
+
             };
             // console.log('InTime: ', requestBody.InTime);
             // console.log('outImage: ', requestBody.outImage);
@@ -316,7 +337,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                         </View>
 
 
-                        <LocationScreen navigation={navigation} />
+                        <LocationScreen navigation={navigation}  onLocationData={handleLocationData}  />
 
 
 
@@ -541,7 +562,7 @@ const styles = StyleSheet.create({
 export default AttendanceClockScreen;
 
 
-const LocationScreen = ({ navigation }) => {
+const LocationScreen = ({ navigation,onLocationData }) => {
     const [location, setLocation] = useState(null);
     const [address, setAddress] = useState('');
     const [error, setError] = useState(null);
@@ -579,6 +600,7 @@ const LocationScreen = ({ navigation }) => {
 
                 if (result.display_name) {
                     setAddress(result.display_name);
+                    onLocationData(latitude, result.display_name);
                 } else {
                     setAddress('Address not found');
                 }
@@ -624,6 +646,7 @@ const LocationScreen = ({ navigation }) => {
                             console.log('Location Success:', position);
                             setLocation(position.coords);
                             fetchAddress(position.coords.latitude, position.coords.longitude);
+                            onLocationData(position.coords.latitude,address);
                         },
                         err => {
                             console.log('Location Error:', err);
@@ -690,142 +713,7 @@ const LocationScreen = ({ navigation }) => {
 
 
 
-// const LocationScreen = ({ navigation }) => {
-//     const [location, setLocation] = useState(null);
-//     const [address, setAddress] = useState('');
-//     const [error, setError] = useState(null);
-//     const [loading, setLoading] = useState(true);
 
-//     useEffect(() => {
-//         const requestLocationPermission = async () => {
-//             try {
-//                 const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-//                 if (result === 'granted') {
-//                     // console.log('Location permission granted');
-//                     return true;
-//                 } else {
-//                     // console.log('Location permission denied');
-//                     throw new Error('Location permission denied.');
-//                 }
-//             } catch (err) {
-//                 // console.log('Request Location Permission Error:', err);
-//                 return false;
-//             }
-//         };
-
-//         const fetchAddress = async (latitude, longitude) => {
-//             try {
-//                 const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(
-//                     latitude
-//                 )}&lon=${encodeURIComponent(longitude)}`;
-//                 // const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&no_annotations=1`;
-
-
-//                 const response = await fetch(url);
-//                 const result = await response.json();
-
-//                 if (result.display_name) {
-//                     setAddress(result.display_name);
-//                 } else {
-//                     setAddress('Address not found');
-//                 }
-//             } catch (err) {
-//                 // console.log('Reverse Geocoding Error:', err);
-//                 setAddress('Error fetching address');
-//             }
-//         };
-
-//         const handleLocationError = err => {
-//             setError('Error fetching location: ' + err.message);
-
-//             if (err.code === 2) {
-//                 // No location provider available
-//                 Alert.alert(
-//                     'Location Services Unavailable',
-//                     'Please make sure your device has location services enabled.',
-//                     [
-//                         {
-//                             text: 'OK',
-//                             onPress: () => {
-//                                 console.log('OK Pressed');
-//                                 // Navigate back to the home page
-//                                 navigation.navigate('Home'); // Replace 'Home' with your actual home page route
-//                             },
-//                         },
-//                         // {
-//                         //     text: 'Enable Location',
-//                         //     onPress: () => openDeviceLocationSettings(),
-//                         // },
-//                     ]
-//                 );
-//             }
-//         };
-
-//         const checkAndFetchLocation = async () => {
-//             try {
-//                 const hasPermission = await requestLocationPermission();
-//                 if (hasPermission) {
-//                     Geolocation.getCurrentPosition(
-//                         position => {
-//                             console.log('Location Success:', position);
-//                             setLocation(position.coords);
-//                             fetchAddress(position.coords.latitude, position.coords.longitude);
-//                             setLoading(false);
-//                         },
-//                         err => {
-//                             console.log('Location Error:', err);
-//                             handleLocationError(err);
-//                             setLoading(false);
-//                         },
-//                         { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 }
-//                     );
-//                 } else {
-//                     throw new Error('Location permission not granted.');
-//                 }
-//             } catch (err) {
-//                 console.log('Check and Fetch Location Error:', err);
-//                 setError('Error checking or fetching location: ' + err.message);
-//                 setLoading(false);
-//             }
-//         };
-
-//         checkAndFetchLocation();
-//     }, []);
-
-//     const openDeviceLocationSettings = () => {
-//         Linking.openURL('content://com.android.settings/settings/location');
-//     };
-
-
-
-//     return (
-//         <View style={{ marginTop: 5, alignItems: 'center' }}>
-//             {error ? (
-//                 <Text>{error}</Text>
-//             ) : location ? (
-//                 <View style={styles.location}>
-//                     <View style={styles.hStack}>
-//                         <Image source={require('../../assets/Attendance/lat.png')} />
-//                         <Text>Latitude: {location.latitude}</Text>
-//                     </View>
-//                     <View style={styles.hStack}>
-//                         <Image source={require('../../assets/Attendance/lon.png')} />
-//                         <Text>Longitude: {location.longitude}</Text>
-//                     </View>
-//                     <View style={styles.hStack}>
-//                         <Image source={require('../../assets/Attendance/location.png')} />
-
-//                         <Text>{address}</Text>
-
-//                     </View>
-//                 </View>
-//             ) : (
-//                 <Text>Loading location...</Text>
-//             )}
-//             {/* Rest of your component JSX */}
-//         </View>
-//     );
-// }
 
 
 
