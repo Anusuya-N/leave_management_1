@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Alert, Text, Platform, Modal, StyleSheet } from 'react-native';
+import { View, Alert, Text, Platform, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import { Button } from 'native-base'
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +7,7 @@ import RNFS from 'react-native-fs';
 import PushNotification from 'react-native-push-notification';
 import RNFetchBlob from 'rn-fetch-blob';
 
-const PDFGenerator = ({ route }) => {
+const PDFGenerator = ({ route ,navigation}) => {
   const { selectedMonth, selectedYear } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -94,7 +94,7 @@ const startDate = getMonthStartDate(selectedMonth, selectedYear);
 
   const generatePDF = async () => {
     try {
-      setModalVisible(true);
+      // setModalVisible(true);
       const htmlContent = `
         <!DOCTYPE html>
         <html lang="en">
@@ -314,16 +314,36 @@ const startDate = getMonthStartDate(selectedMonth, selectedYear);
         directory: 'Documents',
       };
    
-      
+    
       
       const pdf = await RNHTMLtoPDF.convert(options);
       console.log('PDF generated:', pdf.filePath);
 
+      const handleNotificationPress = () => {
+        navigation.navigate('Home');
+      };
+      PushNotification.createChannel(
+        {
+          channelId: 'leave_management', // Must be unique
+          channelName: 'Pay Slip',
+          channelDescription: 'Pay Slip download',
+          soundName: 'default',
+          importance: 4, // Importance level (0 - 4). 4 is the highest level.
+          vibrate: true,
+        
+         
+        },
+        (created) => console.log(`Channel '${created ? 'created' : 'exists'}'`), // Callback when channel is created or already exists
+      );
+
       PushNotification.localNotification({
+        /* Other notification options */
+        channelId: 'leave_management',
         title: 'Download Completed',
         message: 'Your PDF has been downloaded successfully!',
+        onPress: handleNotificationPress, 
       });
-    
+      
       // Move the file to Downloads directory
       const downloadedFilePath = await moveFileToDownloads(pdf.filePath);
       return downloadedFilePath;
@@ -354,10 +374,10 @@ const startDate = getMonthStartDate(selectedMonth, selectedYear);
       </View>
     </Modal>
       <Text style={{ marginBottom: 20 }}> Click the below button to download your payslip </Text>
-      <Button style={{ backgroundColor: "#054582" }} alignSelf={"center"} onPress={generatePDF}
-      >
-        <Text style={{ color: "#FFF" }}  >DOWNLOAD</Text>
-      </Button>
+     
+      <TouchableOpacity onPress={generatePDF} style={styles.button}>
+      <Text style={styles.buttonText}>Download</Text>
+    </TouchableOpacity>
     </View>
   );
 };
@@ -388,7 +408,20 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: 'center'
-  }
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    backgroundColor: '#054582',
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: 'white',
+
+    fontSize: 16,
+  },
 });
 
 
