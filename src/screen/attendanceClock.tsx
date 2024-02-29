@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, Image, Pressable, Platform, TouchableOpacity, PermissionsAndroid, Alert, Linking, TouchableWithoutFeedback } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Dimensions, Image, Pressable, Platform, TouchableOpacity, PermissionsAndroid, Alert, Linking, TouchableWithoutFeedback, Animated, Easing } from 'react-native';
 import { Button, HStack, VStack } from "native-base";
 import Geolocation from '@react-native-community/geolocation';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
@@ -9,31 +9,39 @@ import Home from "../screen/home";
 import Sidebar from '../layout/SideBar';
 import { useAuth } from '../context/AuthContext';
 import Header from '../layout/header';
+import { decode } from 'base-64';
 import { navigation } from '../navigator';
 
 const AttendanceClockScreen = ({ navigation, route }) => {
 
     const photoData = route.params?.base64Data || null;
+    // console.log('photoData: ', photoData);
     const { email, password, userStatus } = useAuth();
+
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [loading, setLoading] = useState(true);
     const [displayedData, setDisplayedData] = useState([]);
     const [submit, setSubmit] = useState(null);
     const [sub, setSub] = useState(null);
     const [inLatitude, setInLatitude] = useState(null);
-    console.log('inLatitude: ', inLatitude);
-   
+    // console.log('inLatitude: ', inLatitude);
+
     const [inLocation, setInLocation] = useState('');
-    console.log('inLocation: ', inLocation);
-   
+    // console.log('inLocation: ', inLocation);
+
 
     // Callback function to receive location data from LocationScreen
     const handleLocationData = (inLat, inLoc) => {
         setInLatitude(inLat);
-       
+
         setInLocation(inLoc);
-      
+
     };
+
+    const [imageData, setImageData] = useState(null);
+    console.log('imageData: ', imageData);
+
+
 
 
 
@@ -59,16 +67,14 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                 OutTime: isClockIn ? "" : formattedTime,
                 outImage: isClockIn ? "" : photoData,
                 InImage: isClockIn ? photoData : "",
-                outlatitude:isClockIn ? "" : inLatitude,
-                inlatitude:isClockIn ? inLatitude : "",
+                outlatitude: isClockIn ? "" : inLatitude,
+                inlatitude: isClockIn ? inLatitude : "",
                 inlocation: isClockIn ? inLocation : "",
-                outlocation:isClockIn ? "" : inLocation,
+                outlocation: isClockIn ? "" : inLocation,
 
             };
-            // console.log('InTime: ', requestBody.InTime);
-            // console.log('outImage: ', requestBody.outImage);
-            // console.log('OutTime: ', requestBody.OutTime);
-            // console.log('requestBody: ', requestBody);
+            console.log('requestBody: ', requestBody);
+
 
             const response = await fetch("http://118.189.74.190:1016/api/emptimeupdate", {
                 method: "POST",
@@ -84,7 +90,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                 //     navigation.navigate('Home'); // Replace 'Home' with your actual home page route
                 // }, 2000);
                 const data = await response.json();
-                console.log('data: ', data);
+                // console.log('data: ', data);
                 if (data.Status === "Succcess") {
 
                 }
@@ -202,7 +208,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
 
 
 
-  
+
 
 
     const toggleDrawer = () => {
@@ -255,7 +261,7 @@ const AttendanceClockScreen = ({ navigation, route }) => {
             return null; // Hide the button if there are 7 or fewer items
         }
     };
-    
+
     const todayEntry = displayedData.find(
         entry => entry.ClockIn && isToday(entry.Date)
     );
@@ -294,8 +300,10 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                     {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </Text>
                             </View>
+
+
                             <View style={{ flex: 1 }}>
-                                {photoData || (todayEntry && todayEntry.ClockOut !== todayEntry.ClockIn) ? (
+                                {photoData || (todayEntry && todayEntry.ClockOut !== todayEntry.ClockIn) || !inLocation || !inLatitude ? (
                                     <></>
 
                                 ) : <Button
@@ -334,13 +342,20 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                 }
                             </View>
 
+
                         </View>
 
 
-                        <LocationScreen navigation={navigation}  onLocationData={handleLocationData}  />
+                        {imageData && (
+                            <Image
+                                source={{ uri: imageData }}
+                                style={{ width: 200, height: 200 }}
+                            />
+                        )}
 
 
-
+                        <LocationScreen navigation={navigation} onLocationData={handleLocationData} />
+                        {/* <Image source={{ uri: `data:image/jpeg;base64,${photoData}` }} style={styles.previewImage} /> */}
                         {photoData ? (
                             <Button mt={3} onPress={
                                 timeUpdate}>
@@ -366,21 +381,21 @@ const AttendanceClockScreen = ({ navigation, route }) => {
                                 {!loading && displayedData.length > 0 && (
                                     <View>
                                         {displayedData.slice(0, showAll ? displayedData.length : initialRowCount).map((entry, index) => (
-                                           <TouchableWithoutFeedback key={index} onPress={() => handleRowPress(entry.Date)}>
-                                            <View style={styles.row} key={index}>
-                                                <View style={styles.dateContainer}>
-                                                    <Text style={styles.date}>{entry.Date}</Text>
-                                                    <Text style={styles.timeBelow}>{entry.ClockIn}</Text>
-                                                </View>
-                                                <Text style={styles.cell}>{entry.Day}</Text>
-                                                <Text style={[styles.cell, styles.clockIn]}>{entry.ClockIn}</Text>
-                                                <Text style={[styles.cell, styles.clockOut]}>{entry.ClockOut}</Text>
-                                                {/* Uncomment the Image component when ready to display images */}
-                                                {/* <Image
+                                            <TouchableWithoutFeedback key={index} onPress={() => handleRowPress(entry.Date)}>
+                                                <View style={styles.row} key={index}>
+                                                    <View style={styles.dateContainer}>
+                                                        <Text style={styles.date}>{entry.Date}</Text>
+                                                        <Text style={styles.timeBelow}>{entry.ClockIn}</Text>
+                                                    </View>
+                                                    <Text style={styles.cell}>{entry.Day}</Text>
+                                                    <Text style={[styles.cell, styles.clockIn]}>{entry.ClockIn}</Text>
+                                                    <Text style={[styles.cell, styles.clockOut]}>{entry.ClockOut}</Text>
+                                                    {/* Uncomment the Image component when ready to display images */}
+                                                    {/* <Image
                                 style={styles.image}
                                 source={{ uri: `data:image/jpeg;base64,${entry.InImage}` }}
                             /> */}
-                                            </View>
+                                                </View>
                                             </TouchableWithoutFeedback>
                                         ))}
                                     </View>
@@ -557,15 +572,89 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         marginTop: 2,
     },
+    loader: {
+        position: 'relative',
+        width: 240,
+        height: 130,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#d3d3d3',
+        padding: 15,
+        backgroundColor: '#e3e3e3',
+        overflow: 'hidden',
+      },
+      gradient: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'transparent',
+        borderBottomColor: 'rgba(255, 255, 255, 0.5)',
+        borderBottomWidth: 130, // Height of the loader
+      },
+      wrapper: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        zIndex: 2,
+       
+      },
+      element: {
+        backgroundColor: '#cacaca',
+      },
+      circle: {
+        width: 25,
+        height: 25,
+        borderRadius: 25,
+        marginBottom: 10,
+      },
+      line: {
+        height: 7,
+        backgroundColor: '#cacaca',
+        position: 'absolute',
+      },
+      line1: {
+        top: 11,
+        left: 40,
+        width: 100,
+      },
+      line2: {
+        top: 45,
+        left: 40,
+        width: 140,
+      },
+      line3: {
+        top: 80,
+        left: 40,
+        width: 170,
+      },
 });
 
 export default AttendanceClockScreen;
 
 
-const LocationScreen = ({ navigation,onLocationData }) => {
+const LocationScreen = ({ navigation, onLocationData }) => {
     const [location, setLocation] = useState(null);
     const [address, setAddress] = useState('');
     const [error, setError] = useState(null);
+
+
+    const translateX = useRef(new Animated.Value(-240)).current; // Initial value adjusted to move the shine from left to right
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.timing(translateX, {
+        toValue: 240, // Adjusted to the width of the loader
+        duration: 2500,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    animation.start();
+    return () => {
+      animation.stop();
+    };
+  }, []);
+
 
     useEffect(() => {
         const options = {
@@ -643,10 +732,10 @@ const LocationScreen = ({ navigation,onLocationData }) => {
                 if (hasPermission) {
                     const watchId = Geolocation.watchPosition(
                         position => {
-                            console.log('Location Success:', position);
+                            // console.log('Location Success:', position);
                             setLocation(position.coords);
                             fetchAddress(position.coords.latitude, position.coords.longitude);
-                            onLocationData(position.coords.latitude,address);
+                            onLocationData(position.coords.latitude, address);
                         },
                         err => {
                             console.log('Location Error:', err);
@@ -699,9 +788,30 @@ const LocationScreen = ({ navigation,onLocationData }) => {
                         <Image source={require('../../assets/Attendance/location.png')} />
                         <Text>Address: {address}</Text>
                     </View>
+                   
                 </View>
             ) : (
-                <Text>Loading location...</Text>
+                // <Text>Loading location...</Text>
+                <>
+                    <View style={styles.loader}>
+                        <Animated.View
+                            style={[
+                                styles.gradient,
+                                {
+                                    transform: [{ translateX: translateX }],
+                                },
+                            ]}
+                        />
+                        <View style={styles.wrapper}>
+                            <View style={[styles.circle, styles.element]} />
+                            <View style={[styles.line, styles.line1]} />
+                            <View style={[styles.circle, styles.element]} />
+                            <View style={[styles.line, styles.line2]} />
+                            <View style={[styles.circle, styles.element]} />
+                            <View style={[styles.line, styles.line3]} />
+                        </View>
+                    </View>
+                </>
             )}
             {/* Rest of your component JSX */}
         </View>

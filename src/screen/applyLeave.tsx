@@ -22,7 +22,9 @@ import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 import { check, PERMISSIONS, request, RESULTS } from 'react-native-permissions';
 import Header from '../layout/header';
 import Modal from 'react-native-modal';
-
+import RNFS from 'react-native-fs';
+import ImageResizer from 'react-native-image-resizer';
+import RNFetchBlob from 'rn-fetch-blob';
 
 
 
@@ -58,9 +60,14 @@ const AddLeave = ({ navigation }) => {
   const [imageName, setImageName] = useState(null);
   const [formStatus, setFormStatus] = useState(false);
   const [validationError, setValidationError] = useState('');
-
+  const [jpegFilePath, setJpegFilePath] = useState(null);
+  const [compressedBase64, setCompressedBase64] = useState(null);
+  const [error, setError] = useState(null);
+ 
+  // console.log('compressedBase64: ', compressedBase64);
+ 
   const handleValidation = () => {
-    if (!selectedLeave || !startDate) {
+    if (!selectedLeave || !startDate || !compressedBase64) {
       setValidationError('Please fill the mandatory field');
       return false;
     } else {
@@ -82,6 +89,20 @@ const AddLeave = ({ navigation }) => {
     checkCameraPermission();
   }, []);
 
+  const compressImage = async (uri) => {
+    try {
+      // Resize the image to reduce its dimensions
+      const resizedImage = await ImageResizer.createResizedImage(uri, 300, 500, 'JPEG', 80);
+
+      // Read the resized image and convert it to base64
+      const base64 = await RNFetchBlob.fs.readFile(resizedImage.uri, 'base64');
+
+      return base64;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      return null;
+    }
+  };
 
   const requestCamera = async () => {
     try {
@@ -119,7 +140,7 @@ const AddLeave = ({ navigation }) => {
   };
 
   const openImagePicker = () => {
-    launchImageLibrary({ mediaType: 'mixed', includeBase64: true }, (response) => {
+    launchImageLibrary({ mediaType: 'mixed', includeBase64: true }, async (response) => {
       if (response.didCancel) {
         console.log('Image picker was canceled');
       } else if (response.error) {
@@ -133,31 +154,38 @@ const AddLeave = ({ navigation }) => {
         //   setImageName( imageName );
         setImageBase64(base64)
         setSelectedImage(uri);
-
+        const compressedBase64Image = await compressImage(uri);
+        setCompressedBase64(compressedBase64Image);
         // Now you can use the 'base64' variable for your purposes
         // console.log('Base64 representation of the selected image:', base64);
       }
     });
   };
 
-  // const openCamera = () => {
-  //   launchCamera({ mediaType: 'photo', includeBase64: true, cameraType: 'back'}, (response) => {
-  //     if (!response.didCancel && !response.error) {
-  //       const uri = response.assets?.[0]?.uri || response.uri;
-  //       const base64 = response.assets?.[0]?.base64 || response.base64;
-  //       setImageBase64(base64)
-  //       setSelectedImage(uri);
-  //     }
-  //   });
+  // const convertToJPEG = async (imageUri) => {
+  //   try {
+  //     const imageExtension = imageUri.split('.').pop(); // Get the file extension
+  //     const jpegFilePath = `${RNFS.CachesDirectoryPath}/capturedPhoto.jpg`;
+
+  //     await RNFS.copyFile(imageUri, jpegFilePath); // Copy the image file and rename it to .jpg
+  //     return jpegFilePath;
+  //   } catch (error) {
+  //     console.error('Error converting image to JPEG:', error);
+  //     return null;
+  //   }
   // };
   const openCamera = async () => {
     const hasPermission = await requestCamera();
 
     if (hasPermission) {
-      launchCamera({ mediaType: 'photo', includeBase64: true, cameraType: 'back' }, (response) => {
+      launchCamera({ mediaType: 'photo', includeBase64: true, cameraType: 'back' }, async (response) => {
         if (!response.didCancel && !response.error) {
           const uri = response.assets?.[0]?.uri || response.uri;
           const base64 = response.assets?.[0]?.base64 || response.base64;
+          // const jpegPath = await convertToJPEG(uri);
+          // setJpegFilePath(jpegPath);
+          const compressedBase64Image = await compressImage(uri);
+          setCompressedBase64(compressedBase64Image);
           setImageBase64(base64)
           setSelectedImage(uri);
         }
@@ -332,6 +360,7 @@ const AddLeave = ({ navigation }) => {
         nDays = dayCounts
       }
 
+    
 
       const requestBody = {
 
@@ -343,7 +372,8 @@ const AddLeave = ({ navigation }) => {
         Status: "pending",
         UserID: email,
         Ltype: lType,
-        attachment: imageBase64
+        Reason:"",
+       attachment: compressedBase64
 
       };
 
@@ -352,8 +382,10 @@ const AddLeave = ({ navigation }) => {
       }
 
 
+     
 
-      console.log('requestBody: ', requestBody);
+
+ 
 
       const response = await fetch("http://118.189.74.190:1016/api/empleaveupdate", {
         method: "POST",
@@ -363,13 +395,20 @@ const AddLeave = ({ navigation }) => {
         body: JSON.stringify(requestBody)
       });
 
+      console.log('mairequestBody: ', requestBody.Ltype);
+      console.log('mainrequestBody: ', requestBody);
+   
+    
       if (response.ok) {
 
         const data = await response.json();
-        const submitForm = data.Status
+        const submitForm = data.ErrorList[0].status
         console.log('data: ', data);
-        if (submitForm === 'Succcess') {
+        setError(submitForm)
+        if (submitForm === 'inserted successfully') {
+          setError(null)
           setFormStatus(true)
+
           // Navigate to the home page
           setTimeout(() => {
             navigation.navigate('Home'); // Replace 'Home' with your actual home page route
@@ -377,11 +416,14 @@ const AddLeave = ({ navigation }) => {
         }
         // Handle the response data as needed
       } else {
+
+      -
+
         Alert.alert("Error", "Something went wrong, Try again later");
-        // console.error("API request failed with status:", response.status);
+        console.error("API request failed with status:", response.status);
       }
     } catch (error) {
-      // console.error("Error occurred during API request:", error);
+      console.error("Error occurred during API request:", error);
     }
     finally {
       setSubmit("")
@@ -755,15 +797,22 @@ const AddLeave = ({ navigation }) => {
               <Text style={styles.succMsg}>Leave Applied Successfully</Text>
             ) : null}
 
+{error ? (
+              <Text style={styles.FailMsg}>{error}</Text>
+            ) : null}
+
 
             {validationError && <Text style={styles.errMsg} >{validationError}</Text>}
 
             <View style={styles.finalBtn} >
               <Button onPress={() => setModalVisible(true)} style={{ backgroundColor: "#054582" }} alignSelf={"center"}   >
-                <Text style={{ color: "white" }}>UPLOAD PHOTO</Text>
+                <Text style={{ color: "white" }}>UPLOAD PHOTO 
+
+                <Text style={{ color: 'red' }}>**</Text>
+                </Text>
               </Button>
               <Button onPress={() => {
-                if (selectedLeave && startDate) {
+                if (selectedLeave && startDate && compressedBase64) {
                   leaveUpdate();
                 } else {
                   handleValidation()
@@ -901,6 +950,13 @@ const styles = StyleSheet.create({
   },
   succMsg: {
     color: "green",
+    justifyContent: "center",
+    alignSelf: "center",
+    fontWeight: "bold",
+    marginTop: 3,
+  },
+  FailMsg: {
+    color: "red",
     justifyContent: "center",
     alignSelf: "center",
     fontWeight: "bold",

@@ -15,7 +15,7 @@ const Home = ({ navigation }: any) => {
   const isLeaveApplied = leaveData.some(leaveItem => leaveItem.LeaveDate.split(' ')[0] === formattedTodayDate);
   const [responseData, setResponseData] = useState(null);
   const [firstEmployee, setFirstEmployee] = useState(null);
-  console.log('responseData: ', responseData);
+
   const markedDates = {};
   leaveData.forEach(leaveItem => {
     const dateParts = leaveItem.LeaveDate.split(' ')[0].split('/');
@@ -194,10 +194,10 @@ const Home = ({ navigation }: any) => {
           <View style={styles.width}>
             {firstEmployee && (
               <>
-                <Text style={styles.homeContent}>
+                <Text style={styles.homeContents}>
                  Greetings {firstEmployee.EmpName}, Your leave status can be found here.
                 </Text>
-                <Text style={styles.homeContent}>
+                <Text style={styles.homeContents}>
                   Date of Joining: {firstEmployee.JoinDate}
                 </Text>
               </>
@@ -335,9 +335,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
 
   },
+  homeContents: {
+    color: "#000",
+    padding: 10,
+    fontWeight: `400`,
+    fontSize: 14,
+   
+
+  },
   homeContent: {
     color: "#000",
-    margin: 10,
+    // padding: 10,
     fontWeight: `300`,
     fontSize: 14,
 

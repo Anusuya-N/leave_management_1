@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { View, Image, StyleSheet, Text, PermissionsAndroid } from 'react-native';
 import { Button } from 'native-base';
 import { launchCamera } from 'react-native-image-picker';
+import ImageResizer from 'react-native-image-resizer';
+import RNFetchBlob from 'rn-fetch-blob';
 
-async function requestCameraPermission() {
+const requestCameraPermission = async () => {
   try {
     const granted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.CAMERA,
       {
         title: 'Camera Permission',
         message: 'App needs access to your camera to take pictures.',
-        // buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'OK',
       }
@@ -20,11 +21,12 @@ async function requestCameraPermission() {
     console.warn(err);
     return false;
   }
-}
+};
 
-function App({ navigation }) {
+const App = ({ navigation }) => {
   const [capturedPhoto, setCapturedPhoto] = useState(null);
-  const [base, setBase] = useState(null);
+  const [compressedBase64, setCompressedBase64] = useState(null);
+  console.log('compressedBase64: ', compressedBase64);
 
   useEffect(() => {
     const handleTakePhoto = async () => {
@@ -52,12 +54,9 @@ function App({ navigation }) {
           const imageUri = response.assets?.[0]?.uri;
           setCapturedPhoto(imageUri);
 
-          // Convert the image to base64
-          const base64 = await imageToBase64(imageUri);
-          console.log('Base64 Image:', base64);
-          setBase(base64);
-
-          // Now you can use the base64 string as needed
+          // Compress the image
+          const compressedBase64Image = await compressImage(imageUri);
+          setCompressedBase64(compressedBase64Image);
         }
       });
     };
@@ -65,22 +64,23 @@ function App({ navigation }) {
     handleTakePhoto();
   }, []);
 
-  const imageToBase64 = async (imageUri) => {
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
+  const compressImage = async (uri) => {
+    try {
+      // Resize the image to reduce its dimensions
+      const resizedImage = await ImageResizer.createResizedImage(uri, 300, 500, 'JPEG', 80);
 
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result.split(',')[1]);
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(blob);
-    });
+      // Read the resized image and convert it to base64
+      const base64 = await RNFetchBlob.fs.readFile(resizedImage.uri, 'base64');
+
+      return base64;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      return null;
+    }
   };
 
   const handleConfirmation = () => {
-    navigation.navigate('AttendanceClockScreen', { base64Data: base });
+    navigation.navigate('AttendanceClockScreen', { base64Data: compressedBase64 });
   };
 
   return (
@@ -88,7 +88,7 @@ function App({ navigation }) {
       {capturedPhoto && (
         <>
           <Image source={{ uri: capturedPhoto }} style={styles.previewImage} />
-          <Button
+         <Button
             mt={5}
             onPress={handleConfirmation}
             style={{ backgroundColor: '#054582' }}
@@ -99,7 +99,7 @@ function App({ navigation }) {
       )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

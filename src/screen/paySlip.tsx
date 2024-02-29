@@ -173,193 +173,194 @@ const PayslipScreen = ({ navigation }) => {
           ) : null}
 
           {salarySlip !== null && (
-          <>
-            <View style={styles.containers}>
-              <View style={styles.tableContainer}>
+            <>
+              <View style={styles.containers}>
+                <View style={styles.tableContainer}>
 
-                <View>
+                  <View>
 
-                  <View style={styles.final}>
+                    <View style={styles.final}>
 
-                    <View style={{ flexDirection: "row" }} >
-                      <Text style={styles.labels}>Pay Period:</Text>
-                      <Text style={styles.values}>{salarySlip.PaidMonth}</Text>
+                      <View style={{ flexDirection: "row" }} >
+                        <Text style={styles.labels}>Pay Period:</Text>
+                        <Text style={styles.values}>{salarySlip.PaidMonth}</Text>
+                      </View>
+                      <View style={styles.cell} />
+                      <View style={{ flexDirection: "row" }}>
+                        <Text style={styles.labels}>Role:</Text>
+                        <Text style={styles.values}>{salarySlip.DesgLevel}</Text>
+                      </View>
                     </View>
-                    <View style={styles.cell} />
-                    <View style={{ flexDirection: "row" }}>
-                      <Text style={styles.labels}>Role:</Text>
-                      <Text style={styles.values}>{salarySlip.DesgLevel}</Text>
+
+
+
+                    <View style={styles.horizontalLines} />
+                    <View style={styles.final}>
+
+                      <View style={{ flexDirection: "row" }} >
+                        <Text style={styles.labels}>NRIC/FIN:</Text>
+                        <Text style={styles.values}>{salarySlip.NricId}</Text>
+                      </View>
+                      <View style={styles.cell} />
+
+                      <View style={{ flexDirection: "row" }}>
+                        <Text style={styles.labels}>Name:</Text>
+                        <Text style={styles.values}>{salarySlip.EmployeeName}</Text>
+                      </View>
                     </View>
+                    <View style={styles.horizontalLines} />
                   </View>
-                  
-
-
-                  <View style={styles.horizontalLines} />
-                  <View style={styles.final}>
-
-                    <View style={{ flexDirection: "row" }} >
-                      <Text style={styles.labels}>NRIC/FIN:</Text>
-                      <Text style={styles.values}>{salarySlip.NricId}</Text>
-                    </View>
-                    <View style={styles.cell} />
-
-                    <View style={{ flexDirection: "row" }}>
-                      <Text style={styles.labels}>Name:</Text>
-                      <Text style={styles.values}>{salarySlip.EmployeeName}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.horizontalLines} />
-                </View>
 
 
 
-                {/* <View style={styles.imageContainer}>
+                  {/* <View style={styles.imageContainer}>
                   <Image source={require('../../assets/Logo/pay.png')} />
                 </View> */}
 
-                <View style={styles.earndedhea}>
-                  <Text style={styles.subHeaderText}>Earnings</Text>
-                  <Text style={styles.subHeaderText}>Deductions</Text>
-                </View>
-                <View style={styles.horizontalLine} />
-                <View style={styles.earnded}>
-                  {/* Earnings */}
-                  <View style={[styles.column, styles.leftColumn]}>
+                  <View style={styles.earndedhea}>
+                    <Text style={styles.subHeaderText}>Earnings</Text>
+                    <Text style={styles.subHeaderText}>Deductions</Text>
+                  </View>
+                  <View style={styles.horizontalLine} />
+                  <View style={styles.earnded}>
+                    {/* Earnings */}
+                    <View style={[styles.column, styles.leftColumn]}>
 
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Basic Pay</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.Basic}</Text>
-                    </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Allowances</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.Allowences}</Text>
-                    </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Standard Overtime</Text>
-                      <Text style={styles.labelearnded}>{salarySlip["Standard OT"]}</Text>
-                    </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Public Holiday Overtime</Text>
-                      <Text style={styles.labelearnded}>{salarySlip["PH OT"]}</Text>
-                    </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Bonus</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.Bonus}</Text>
-                    </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Back Pay</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.BackPay}</Text>
-                    </View>
-                    {/* <View style={styles.item}>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Basic Pay</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.Basic}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Allowances</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.Allowences}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Standard Overtime</Text>
+                        <Text style={styles.labelearnded}>{salarySlip["Standard OT"]}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Public Holiday Overtime</Text>
+                        <Text style={styles.labelearnded}>{salarySlip["PH OT"]}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Bonus</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.Bonus}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Back Pay</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.BackPay}</Text>
+                      </View>
+                      {/* <View style={styles.item}>
                       <Text style={styles.labelearnded}>Leave Pay</Text>
                       <Text style={styles.labelearnded}>ui</Text>
                     </View> */}
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}> Others</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.Others}</Text>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}> Others</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.Others}</Text>
+                      </View>
+
                     </View>
 
-                  </View>
+                    {/* <View style={styles.divider} /> */}
 
-                  {/* <View style={styles.divider} /> */}
-
-                  {/* Deductions */}
-                  <View style={[styles.column, styles.rightColumn]}>
+                    {/* Deductions */}
+                    <View style={[styles.column, styles.rightColumn]}>
 
 
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>No Pay Leave</Text>
-                      <Text style={styles.labelearnded}>{salarySlip["No Pay"]}</Text>
-                    </View>
-                    {/* <View style={styles.item}>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>No Pay Leave</Text>
+                        <Text style={styles.labelearnded}>{salarySlip["No Pay"]}</Text>
+                      </View>
+                      {/* <View style={styles.item}>
                       <Text style={styles.labelearnded}>Housing/Transport/Others</Text>
                       <Text style={styles.labelearnded}>hjkl</Text>
                     </View> */}
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Advance Repay</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.Advance}</Text>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Advance Repay</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.Advance}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Others</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.Others}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>CDAC/MBMF/SINDA</Text>
+                        <Text style={styles.labelearnded}>{salarySlip.CDACFund}</Text>
+                      </View>
+                      <View style={styles.item}>
+                        <Text style={styles.labelearnded}>Employee CPF</Text>
+                        <Text style={styles.labelearnded}>{salarySlip["Employee CPF"]}</Text>
+                      </View>
+
                     </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Others</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.Others}</Text>
+                  </View>
+
+                  <View style={styles.horizontalLines} />
+
+                  <View>
+                    <View style={styles.final}>
+
+                      <View style={{ flexDirection: "row" }} >
+                        <Text style={styles.labels}>Total Gross:</Text>
+                        <Text style={styles.values}>{salarySlip.TotalGross}</Text>
+                      </View>
+
+                      <View style={styles.cell} />
+
+                      <View style={{ flexDirection: "row" }}>
+                        <Text style={styles.labels}>Total Deduction:</Text>
+                        <Text style={styles.values}>{salarySlip.TotalDeduction}</Text>
+                      </View>
                     </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>CDAC/MBMF/SINDA</Text>
-                      <Text style={styles.labelearnded}>{salarySlip.CDACFund}</Text>
+
+                    <View style={styles.horizontalLines} />
+                    <View style={styles.final}>
+
+                      <View style={{ flexDirection: "row" }} >
+                        <Text style={styles.labels}>Total Net Pay:</Text>
+                        <Text style={styles.values}>{salarySlip.NetPay}</Text>
+                      </View>
+
+                      <View style={styles.cell} />
+                      <View style={{ flexDirection: "row" }}>
+                        <Text style={styles.labels}>Bank A/C No:</Text>
+                        <Text style={styles.values}>{salarySlip.BankAc}</Text>
+                      </View>
                     </View>
-                    <View style={styles.item}>
-                      <Text style={styles.labelearnded}>Employee CPF</Text>
-                      <Text style={styles.labelearnded}>{salarySlip["Employee CPF"]}</Text>
+                    <View style={styles.horizontalLines} />
+                    <View style={styles.final}>
+
+                      <View style={{ flexDirection: "row" }} >
+                        <Text style={styles.labels}>Paid On:</Text>
+                        <Text style={styles.values}>{salarySlip.PaidOn.split(' ')[0]}</Text>
+                      </View>
+                      <View style={styles.cell} />
+
+                      <View style={{ flexDirection: "row" }}>
+                        <Text style={styles.labels}>Employer CPF:</Text>
+                        <Text style={styles.values}>{salarySlip.EmployerCPF}</Text>
+                      </View>
                     </View>
+
 
                   </View>
                 </View>
 
-                <View style={styles.horizontalLines} />
-
-                <View>
-                  <View style={styles.final}>
-
-                    <View style={{ flexDirection: "row" }} >
-                      <Text style={styles.labels}>Total Gross:</Text>
-                      <Text style={styles.values}>{salarySlip.TotalGross}</Text>
-                    </View>
-
-                    <View style={styles.cell} />
-
-                    <View style={{ flexDirection: "row" }}>
-                      <Text style={styles.labels}>Total Deduction:</Text>
-                      <Text style={styles.values}>{salarySlip.TotalDeduction}</Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.horizontalLines} />
-                  <View style={styles.final}>
-
-                    <View style={{ flexDirection: "row" }} >
-                      <Text style={styles.labels}>Total Net Pay:</Text>
-                      <Text style={styles.values}>{salarySlip.NetPay}</Text>
-                    </View>
-
-                    <View style={styles.cell} />
-                    <View style={{ flexDirection: "row" }}>
-                      <Text style={styles.labels}>Bank A/C No:</Text>
-                      <Text style={styles.values}>{salarySlip.BankAc}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.horizontalLines} />
-                  <View style={styles.final}>
-
-                    <View style={{ flexDirection: "row" }} >
-                      <Text style={styles.labels}>Paid On:</Text>
-                      <Text style={styles.values}>{salarySlip.PaidOn.split(' ')[0]}</Text>
-                    </View>
-                    <View style={styles.cell} />
-
-                    <View style={{ flexDirection: "row" }}>
-                      <Text style={styles.labels}>Employer CPF:</Text>
-                      <Text style={styles.values}>{salarySlip.EmployerCPF}</Text>
-                    </View>
-                  </View>
 
 
-                </View>
+
+              </View>
+              <Text style={styles.slip}> This is Computer Generated Payslip,No Signature Required</Text>
+              <Text style={styles.slip}> Any query please Call : +65 868778767 </Text>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Pressable onPress={() => navigation.navigate("Download", { selectedMonth, selectedYear })}>
+                  <Text>Download PaySlip</Text>
+                </Pressable>
+
               </View>
 
-
-
-
-            </View>
-            <Text style={styles.slip}> This is Computer Generated Payslip,No Signature Required</Text>
-            <Text style={styles.slip}> Any query please Call : +65 868778767 </Text>
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-              {/* <Pressable onPress={() => navigation.navigate("Download")}>
-            <Text>ftest</Text>
-             </Pressable> */}
-            </View>
-
-          </>
-         )}
+            </>
+          )}
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -445,7 +446,7 @@ const styles = StyleSheet.create({
   },
   labelText: {
     fontWeight: 'bold',
-    
+
   },
   labelearnded: {
     fontSize: 10,
@@ -453,18 +454,18 @@ const styles = StyleSheet.create({
     // width:100
   },
   valueText: {
-   
+
   },
-  labels:{
+  labels: {
     fontWeight: 'bold',
     width: 100,
-    padding:2,
+    padding: 2,
     fontSize: 12,
   },
-  values:{
+  values: {
     fontWeight: 'bold',
     width: 100,
-    padding:4,
+    padding: 4,
     fontSize: 12,
   },
 
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 10,
     marginBottom: 10,
-textDecorationLine:"underline",
+    textDecorationLine: "underline",
     color: "green",
 
 
@@ -543,7 +544,7 @@ textDecorationLine:"underline",
     flex: 1,
     borderRightWidth: 1,
     borderRightColor: '#000',
-    
+
   },
 
   button: {
@@ -579,7 +580,7 @@ textDecorationLine:"underline",
     borderBottomWidth: 1,
     borderBottomColor: '#000',
     width: '100%', // Ensure the line spans the entire width of the table
- 
+
   },
   earnded: {
     flexDirection: 'row',
@@ -601,7 +602,7 @@ textDecorationLine:"underline",
     marginBottom: 5,
     flexDirection: "row",
     justifyContent: "space-between",
-   
+
   },
   final: {
     flexDirection: "row",
@@ -611,18 +612,18 @@ textDecorationLine:"underline",
     width: 1,
     backgroundColor: '#000',
     alignSelf: 'stretch',
-height: '100%',
+    height: '100%',
   },
   earndedhea: {
     flexDirection: "row",
     justifyContent: "space-around"
   },
-  err:{
-    fontWeight:"bold",
-    alignSelf:"center",
-    color:"red",
-    marginTop:5,
-  
+  err: {
+    fontWeight: "bold",
+    alignSelf: "center",
+    color: "red",
+    marginTop: 5,
+
   }
 
 });
