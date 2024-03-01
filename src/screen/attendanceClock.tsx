@@ -781,15 +781,15 @@ const LocationScreen = ({ navigation, onLocationData }) => {
                 <View style={styles.location}>
                     <View style={styles.hStack}>
                         <Image source={require('../../assets/Attendance/lat.png')} />
-                        <Text>Latitude: {location.latitude}</Text>
+                        <Text style={{color:"gray"}}>Latitude: {location.latitude}</Text>
                     </View>
                     <View style={styles.hStack}>
                         <Image source={require('../../assets/Attendance/lon.png')} />
-                        <Text>Longitude: {location.longitude}</Text>
+                        <Text style={{color:"gray"}}>Longitude: {location.longitude}</Text>
                     </View>
                     <View style={styles.hStack}>
                         <Image source={require('../../assets/Attendance/location.png')} />
-                        <Text>Address: {address}</Text>
+                        <Text style={{color:"gray"}}>Address: {address}</Text>
                     </View>
                    
                 </View>
