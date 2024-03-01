@@ -373,7 +373,8 @@ const styles = StyleSheet.create({
         margin: 2,
         flex: 1,
         width: 100,
-        fontSize: 13
+        fontSize: 13,
+        color: 'gray',
     },
     cancelButton: {
         backgroundColor: 'red', // Change the background color as needed

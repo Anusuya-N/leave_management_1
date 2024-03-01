@@ -488,6 +488,7 @@ const styles = StyleSheet.create({
     currentDate: {
         fontSize: 15,
         marginTop: 10,
+        color: 'gray',
 
     },
     hStack: {
@@ -540,12 +541,14 @@ const styles = StyleSheet.create({
     },
     date: {
         fontWeight: 'bold',
+        color: 'gray',
     },
     timeBelow: {
         color: 'gray',
     },
     cell: {
         flex: 1,
+        color: 'gray',
     },
     clockIn: {
         color: 'green',

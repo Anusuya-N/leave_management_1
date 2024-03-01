@@ -354,7 +354,7 @@ const PayslipScreen = ({ navigation }) => {
               <Text style={styles.slip}> Any query please Call : +65 868778767 </Text>
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <Pressable onPress={() => navigation.navigate("Download", { selectedMonth, selectedYear })}>
-                  <Text>Download PaySlip</Text>
+                  <Text style={{color:"#000"}}>Download PaySlip</Text>
                 </Pressable>
 
               </View>
@@ -451,6 +451,7 @@ const styles = StyleSheet.create({
   labelearnded: {
     fontSize: 10,
     fontWeight: 'bold',
+    color: 'gray',
     // width:100
   },
   valueText: {
@@ -461,12 +462,14 @@ const styles = StyleSheet.create({
     width: 100,
     padding: 2,
     fontSize: 12,
+    color: '#000',
   },
   values: {
     fontWeight: 'bold',
     width: 100,
     padding: 4,
     fontSize: 12,
+    color: 'gray',
   },
 
   contentContainer: {
