@@ -16,6 +16,8 @@ import ClaimPage from '../screen/claimPage';
 import AddLeave from '../screen/applyLeave';
 import AttendanceDetails from '../screen/AttendanceDetails';
 import Download from '../screen/Download';
+import LeaveApproval from '../screen/LeaveApproval';
+
 
 const AuthStack = createStackNavigator();
 const AuthStackScreen = () => (
@@ -117,6 +119,11 @@ export default function RootStackScreen() {
             component={Download}
             options={{ title: 'Download' }}
           />
+            <RootStack.Screen
+            name="Approval"
+            component={LeaveApproval}
+            options={{ title: 'Approval' }}
+          />
 
         </>
       ) : (
@@ -134,6 +141,7 @@ export default function RootStackScreen() {
       <RootStack.Screen name="AddLeave" component={AddLeave} options={{ title: 'AddLeave' }} />
       <RootStack.Screen name="AttendanceDetails" component={AttendanceDetails} options={{ title: 'AttendanceDetails' }} />
       <RootStack.Screen name="Download" component={Download} options={{ title: 'Download' }} />
+      <RootStack.Screen name="Approval" component={LeaveApproval} options={{ title: 'Approval' }} />
       <RootStack.Screen
         name="Sidebar"
         component={Sidebar}

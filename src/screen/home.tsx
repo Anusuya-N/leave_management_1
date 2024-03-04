@@ -173,6 +173,14 @@ const Home = ({ navigation }: any) => {
                 <Image style={styles.dashImg} source={require("../../assets/DashBoard/roster.png")}></Image></Pressable>
               <Text>Employee Roster</Text>
             </View>
+
+            <View >
+              <Pressable onPress={() => navigation.navigate("Approval")}>
+                <Image style={styles.dashImg} source={require("../../assets/DashBoard/approvalLeave.png")}></Image>
+              </Pressable>
+              <Text>Leave Approval</Text>
+            </View>
+            
           </View>
           {/* <Calendar
             markedDates={markedDates}
