@@ -115,7 +115,7 @@ const Home = ({ navigation }: any) => {
           const joinDateParts = firstEmployeeData.JoinDate.split(' ')[0];
           firstEmployeeData.JoinDate = joinDateParts;
           setFirstEmployee(firstEmployeeData);
-          console.log('data: ', data);
+       
           setResponseData(data.emphomedetails)
 
         } else {
