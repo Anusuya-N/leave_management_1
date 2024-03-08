@@ -46,9 +46,8 @@ const {email,setEmail,password,setPassword} = useAuth();
       if (response.ok) {
         const data = await response.json();
 
-        if (data.StatusResult === "success") {
-       
-          console.log("Login successful!");
+        if (data.StatusResult === "success" ||"approval") {
+      
           navigation.navigate("Home");
           // navigation.reset({
           //   index: 0,

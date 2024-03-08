@@ -6,6 +6,8 @@ export const AuthProvider = ({ children }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [userStatus, setUserStatus] = useState(null);
+    const [userType, setUserType] = useState(null);
+
     const [leaveLoad, setLeaveLoad] = useState(false);
 
     useEffect(() => {
@@ -25,6 +27,7 @@ export const AuthProvider = ({ children }) => {
                 if (response.ok) {
                     const data = await response.json();
                     setUserStatus(data.Status);
+                    setUserType(data.StatusResult)
                 } else {
                     console.error('Error fetching user status');
                 }
@@ -46,7 +49,9 @@ export const AuthProvider = ({ children }) => {
                 userStatus,
                 setUserStatus,
                 setLeaveLoad,
-                leaveLoad
+                leaveLoad,
+                userType,
+                setUserType
             }}>
             {children}
         </AuthContext.Provider>

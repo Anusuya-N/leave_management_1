@@ -7,7 +7,8 @@ import { Calendar } from 'react-native-calendars';
 import { useAuth } from '../context/AuthContext';
 import { background } from 'native-base/lib/typescript/theme/styled-system';
 const Home = ({ navigation }: any) => {
-  const { email, leaveLoad } = useAuth()
+  const { email, leaveLoad, userType } = useAuth()
+  console.log('userType: ', userType);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [leaveData, setLeaveData] = useState([]);
   const todayDate = new Date();
@@ -90,7 +91,7 @@ const Home = ({ navigation }: any) => {
     ]
   const [showAll, setShowAll] = useState(false);
 
-  const displayedAlerts = showAll ?responseData && responseData :responseData && responseData.slice(0, 3);
+  const displayedAlerts = showAll ? responseData && responseData : responseData && responseData.slice(0, 3);
 
   const toggleShowAll = () => {
     setShowAll(!showAll);
@@ -115,7 +116,7 @@ const Home = ({ navigation }: any) => {
           const joinDateParts = firstEmployeeData.JoinDate.split(' ')[0];
           firstEmployeeData.JoinDate = joinDateParts;
           setFirstEmployee(firstEmployeeData);
-       
+
           setResponseData(data.emphomedetails)
 
         } else {
@@ -174,13 +175,16 @@ const Home = ({ navigation }: any) => {
               <Text>Employee Roster</Text>
             </View>
 
-            <View >
-              <Pressable onPress={() => navigation.navigate("Approval")}>
-                <Image style={styles.dashImg} source={require("../../assets/DashBoard/approvalLeave.png")}></Image>
-              </Pressable>
-              <Text>Leave Approval</Text>
-            </View>
-            
+            {userType === "approval" && (
+              <View >
+                <Pressable onPress={() => navigation.navigate("Approval")}>
+                  <Image style={styles.dashImg} source={require("../../assets/DashBoard/approvalLeave.png")}></Image>
+                </Pressable>
+                <Text>Leave Approval</Text>
+              </View>
+            )}
+
+
           </View>
           {/* <Calendar
             markedDates={markedDates}
@@ -203,7 +207,7 @@ const Home = ({ navigation }: any) => {
             {firstEmployee && (
               <>
                 <Text style={styles.homeContents}>
-                 Greetings {firstEmployee.EmpName}, Your leave status can be found here.
+                  Greetings {firstEmployee.EmpName}, Your leave status can be found here.
                 </Text>
                 <Text style={styles.homeContents}>
                   Date of Joining: {firstEmployee.JoinDate}
@@ -254,7 +258,7 @@ const Home = ({ navigation }: any) => {
                   <Text style={styles.bulletPoint}>●
 
                     <Text style={styles.homeContent}>
-                      Your {alert.nDays} day leave <Text style={{ color: "green" }}>({alert.LTypeName} - {alert.LeaveCode})</Text>  from {alert.LeaveDate.split(' ')[0]} to {alert.LeaveDate.split(' ')[0]} has been {alert.Status} 
+                      Your {alert.nDays} day leave <Text style={{ color: "green" }}>({alert.LTypeName} - {alert.LeaveCode})</Text>  from {alert.LeaveDate.split(' ')[0]} to {alert.LeaveDate.split(' ')[0]} has been {alert.Status}
                       {/* <Text>  </Text>
                       <Text style={{ color: "#fff", backgroundColor: "gray" }}>  {alert.Approve1} </Text> */}
                     </Text>
@@ -264,10 +268,10 @@ const Home = ({ navigation }: any) => {
               ))}
             </View>
             {responseData && responseData.length > 3 && (
-        <TouchableOpacity onPress={toggleShowAll}>
-          <Text style={styles.viewToggle}>{showAll ? 'View less' : 'View more'}</Text>
-        </TouchableOpacity>
-      )}
+              <TouchableOpacity onPress={toggleShowAll}>
+                <Text style={styles.viewToggle}>{showAll ? 'View less' : 'View more'}</Text>
+              </TouchableOpacity>
+            )}
             {/* <View style={styles.line} /> */}
 
           </View>
@@ -348,7 +352,7 @@ const styles = StyleSheet.create({
     padding: 10,
     fontWeight: `400`,
     fontSize: 14,
-   
+
 
   },
   homeContent: {
