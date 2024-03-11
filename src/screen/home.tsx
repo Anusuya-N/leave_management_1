@@ -5,26 +5,11 @@ import Sidebar from '../layout/SideBar'; // Import the Sidebar component
 import Header from '../layout/header';
 import { Calendar } from 'react-native-calendars';
 import { useAuth } from '../context/AuthContext';
-import { background } from 'native-base/lib/typescript/theme/styled-system';
 const Home = ({ navigation }: any) => {
-  const { email, leaveLoad, userType } = useAuth()
+  const { email, leaveLoad, userType,responseData,firstEmployee } = useAuth()
   console.log('userType: ', userType);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  const [leaveData, setLeaveData] = useState([]);
-  const todayDate = new Date();
-  const formattedTodayDate = `${todayDate.getMonth() + 1}/${todayDate.getDate()}/${todayDate.getFullYear()}`;
-  const isLeaveApplied = leaveData.some(leaveItem => leaveItem.LeaveDate.split(' ')[0] === formattedTodayDate);
-  const [responseData, setResponseData] = useState(null);
-  const [firstEmployee, setFirstEmployee] = useState(null);
-
-  const markedDates = {};
-  leaveData.forEach(leaveItem => {
-    const dateParts = leaveItem.LeaveDate.split(' ')[0].split('/');
-    const formattedLeaveDate = `${dateParts[0]}/${dateParts[1]}/${dateParts[2]}`;
-    markedDates[formattedLeaveDate] = { marked: true };
-  });
-
-
+  
   const toggleDrawer = () => {
     setIsDrawerVisible(!isDrawerVisible);
   };
@@ -33,62 +18,7 @@ const Home = ({ navigation }: any) => {
     setIsDrawerVisible(false);
   };
 
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1; // Months are zero-based (0 to 11)
-  const currentYear = currentDate.getFullYear();
-  useEffect(() => {
-    const leaveList = async () => {
-      try {
-
-
-
-        const requestBody = {
-          monthno: currentMonth,
-          yearno: currentYear,
-          NricID: email
-        };
-
-        const response = await fetch("payslipapi", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(requestBody)
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.Message === "No Data Found") {
-            setLeaveData([]);
-          } else {
-            const leaveList = data.empleave;
-            setLeaveData(leaveList);
-          }
-        } else {
-          console.error("API request failed with status:", response.status);
-        }
-      } catch (error) {
-        console.error("Error occurred during API request:", error);
-      }
-    };
-
-    leaveList();
-  }, [leaveLoad]);
-  const leaveDetails =
-    [{ leaveType: "Annual Leave", leaveTaken: 5, balanceLeave: 15, adjustedBalanceLeaveBF: 10 },
-    { leaveType: "Sick Leave", leaveTaken: 5, balanceLeave: 15, adjustedBalanceLeaveBF: 10 },
-    { leaveType: "Public Holiday", leaveTaken: 5, balanceLeave: 15, adjustedBalanceLeaveBF: 10 },
-    ]
-  const alertDetails =
-    [
-      { leaveType: "Annual Leave", count: 5, status: "APPROVED", admin: "YIP", startDate: "2023-11-02", endDate: "2023-11-05" },
-      { leaveType: "Sick Leave", count: 4, status: "APPROVED", admin: "LEE", startDate: "2023-11-02", endDate: "2023-11-05" },
-      { leaveType: "Public Leave", count: 3, status: "APPROVED", admin: "SUAN", startDate: "2023-11-02", endDate: "2023-11-05" },
-      { leaveType: "Maternity Leave", count: 2, status: "APPROVED", admin: "TIN", startDate: "2023-11-02", endDate: "2023-11-05" },
-      { leaveType: "Extended Leave", count: 1, status: "APPROVED", admin: "JU", startDate: "2023-11-02", endDate: "2023-11-05" },
-      { leaveType: "Sick Leave", count: 5, status: "APPROVED", admin: "EIN", startDate: "2023-11-02", endDate: "2023-11-05" },
-
-    ]
+ 
   const [showAll, setShowAll] = useState(false);
 
   const displayedAlerts = showAll ? responseData && responseData : responseData && responseData.slice(0, 3);
@@ -97,38 +27,38 @@ const Home = ({ navigation }: any) => {
     setShowAll(!showAll);
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('http://118.189.74.190:1016//api/empDetailshome', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            NricId: email,
-          }),
-        });
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await fetch('http://118.189.74.190:1016//api/empDetailshome', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify({
+  //           NricId: email,
+  //         }),
+  //       });
 
-        if (response.ok) {
-          const data = await response.json();
-          const firstEmployeeData = data.emphomedetails[0];
-          const joinDateParts = firstEmployeeData.JoinDate.split(' ')[0];
-          firstEmployeeData.JoinDate = joinDateParts;
-          setFirstEmployee(firstEmployeeData);
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         const firstEmployeeData = data.emphomedetails[0];
+  //         const joinDateParts = firstEmployeeData.JoinDate.split(' ')[0];
+  //         firstEmployeeData.JoinDate = joinDateParts;
+  //         setFirstEmployee(firstEmployeeData);
 
-          setResponseData(data.emphomedetails)
+  //         setResponseData(data.emphomedetails)
 
-        } else {
-          console.error('Error fetching user status');
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+  //       } else {
+  //         console.error('Error fetching user status');
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     }
+  //   };
 
-    fetchData();
-  }, [email]);
+  //   fetchData();
+  // }, [email]);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>

@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Image, StyleSheet, Dimensions, Text } from 'react-native';
 import Modal from 'react-native-modal';
 import DrawerMenu from '../navigator/DrawerContent'; // Import the DrawerMenu component
+import { useAuth } from '../context/AuthContext';
 
 
 const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
+  const {firstEmployee}=useAuth();
   const menuItems = [
     { text: 'Dashboard', screenName: 'Home', menuType: 'subheading',  },
     { text: 'Attendance Clock', screenName: 'AttendanceClockScreen', menuType: 'subheading' },
@@ -19,7 +21,7 @@ const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
     { text: 'Claim page', screenName: 'ClaimPage', menuType: 'subheading' },
     { text: 'Leaves Per Type', screenName: 'Screen11', menuType: 'subheading' },
     { text: 'Planned & Unplanned leaves', screenName: 'Screen12', menuType: 'subheading' },
-    { text: 'Total Paid LWP', screenName: 'Screen13', menuType: 'subheading' },
+    // { text: 'Total Paid LWP', screenName: 'Screen13', menuType: 'subheading' },
     { text: 'Authorized & Unauthorized Leaves', screenName: 'Screen14', menuType: 'subheading' },
     { text: 'Log Out', screenName: 'Login', menuType: 'Login' },
   ];
@@ -33,9 +35,15 @@ const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
       style={{ margin: 0 }}
     >
       <View style={styles.drawerContainer}>
+        
         {/* <Image style={{backgroundColor:"aqua"}} source={require('../../assets/Images/menu.png')} /> */}
         <View style={styles.userCircle}>
-          <Text style={styles.userName}>AN</Text>
+          {
+            firstEmployee && (
+              <Text style={styles.userName}>{firstEmployee.EmpName.substring(0, 2)}</Text>
+            )
+          }
+        
         </View>
         {menuItems.map((menuItem, index) => (
           <DrawerMenu
@@ -48,6 +56,9 @@ const Sidebar = ({ isVisible, onCloseDrawer, navigation }) => {
            
           />
         ))}
+     <View style={styles.footer} >
+              <Text style={styles.footerText}>Copyright © GSK Technology. (Ver-1.0)</Text>
+              </View>
       </View>
     </Modal>
   );
@@ -84,6 +95,19 @@ const styles = StyleSheet.create({
     color: '#054582',
     fontWeight: 'bold',
   },
+  footer: {
+    position: 'absolute',
+  right: 0,
+    bottom:60,
+    padding: 5,
+  
+  },
+  footerText: {
+    color: '#000',
+    fontSize: 10,
+    fontWeight:"bold"
+  },
+
 
 
 
