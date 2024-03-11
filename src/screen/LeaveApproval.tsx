@@ -179,8 +179,8 @@ const Notify = ({ navigation }) => {
                         const numericMonth = monthsOfYear.indexOf(month.substring(0, 3)); // Get numerical representation of month
                         const date = new Date(year, numericMonth, day);
                         const dayOfWeek = daysOfWeek[date.getDay()];
-                      
-                      
+
+
 
                         return (
                             <View key={index} style={styles.boxlist}>
@@ -193,12 +193,12 @@ const Notify = ({ navigation }) => {
                                         <View>
                                             <Text style={[styles.date, index % 2 !== 0 ? { color: "#7CB9E8" } : null]}>{day}</Text>
                                             <Text style={[styles.year, index % 2 !== 0 ? { color: "#7CB9E8" } : null]}>{year}</Text>
-                                            <Text style={{alignSelf:"center"}} >{dayOfWeek}</Text>
+                                            <Text style={{ alignSelf: "center" }} >{dayOfWeek}</Text>
 
                                         </View>
-                                        
+
                                     </View>
-                                 
+
                                     <VStack>
                                         <View style={styles.empDetails} >
                                             <Text style={styles.name}>{leave.EmpName} </Text>
@@ -358,10 +358,10 @@ const styles = StyleSheet.create({
         color: "green",
         fontWeight: "bold",
     },
-    dayofweek:{
-        fontWeight:"bold",
-        color:"#000",
-        padding:15
+    dayofweek: {
+        fontWeight: "bold",
+        color: "#000",
+        padding: 15
     }
 });
 
