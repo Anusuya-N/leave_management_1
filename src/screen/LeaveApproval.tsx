@@ -8,7 +8,11 @@ import { useAuth } from '../context/AuthContext';
 
 const Notify = ({ navigation }) => {
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+    const [button, setButton] = useState(false);
     const [approval, setApproval] = useState([]);
+   
+    const [error, setError] = useState(null);
+    const [allSelected, setAllSelected] = useState(false);
     // console.log('approval: ', approval);
     const { email } = useAuth();
     const [modalVisible, setModalVisible] = useState(false);
@@ -41,7 +45,12 @@ const Notify = ({ navigation }) => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    setApproval(data.list)
+                    if (data.list && data.list.length > 0) {
+                        setApproval(data.list);
+                    } else {
+                        setError('No data found');
+                    }
+
                 } else {
                     console.error('Error fetching user status');
                 }
@@ -116,29 +125,55 @@ const Notify = ({ navigation }) => {
         setIsDrawerVisible(false);
     };
 
-    const handleSelectAll = () => {
-        const updatedApproval = approval.map(request => {
-            return { ...request, selected: true };
-        });
-        setApproval(updatedApproval);
-    };
-
-    const handleApproveSelected = () => {
-        // Logic to approve selected requests
-        // For now, let's just log the selected requests
+    const handleApproveAll = () => {
+        // Filter out the selected leave requests
         const selectedRequests = approval.filter(request => request.selected);
-        console.log("Selected Requests for Approval:", selectedRequests);
-    };
 
-    const handleToggleSelect = (id) => {
+        // Iterate over selectedRequests to update their status to "approved"
+        selectedRequests.forEach(request => {
+            leaveUpdate(request.NricID, request.LeaveDate, "approved");
+        });
+
+        // Update the local state to reflect the changes
         const updatedApproval = approval.map(request => {
-            if (request.id === id) {
-                return { ...request, selected: !request.selected };
+            if (request.selected) {
+                return {
+                    ...request,
+                    Status: "approved"
+                };
             }
             return request;
         });
+
         setApproval(updatedApproval);
     };
+
+
+    const handleSelectAll = () => {
+        const updatedApproval = approval.map(request => {
+            return {
+                ...request,
+                selected: true // Set selected to true for all leave requests
+            };
+        });
+        setApproval(updatedApproval);
+        setButton(true)
+    };
+
+    const handleToggleSelect = (id, date) => {
+        const leaveToUpdate = approval.find(request => request.NricID === id && request.LeaveDate === date);
+        const updatedApproval = approval.map(request => {
+            if (request.NricID === id && request.LeaveDate === date) {
+                return { ...request, selected: !leaveToUpdate.selected };
+            }
+            return request;
+        });
+
+        setApproval(updatedApproval);
+    };
+
+
+
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -165,15 +200,36 @@ const Notify = ({ navigation }) => {
                 </View>
                 <Text style={styles.moduleHea}>Leave Approval</Text>
                 <View >
-                    <View style={styles.buttonsContainer}>
-                        <Image source={require("../../assets/Apply/all.png")} />
-                        <Pressable onPress={handleSelectAll}>
 
-                            <Text style={styles.allText}>  Select All</Text>
+                    <HStack style={{ justifyContent: "space-around" }}>
+                        <View style={styles.buttonsContainer}>
+                            <Image source={require("../../assets/Apply/all.png")} />
+                            <Pressable onPress={handleSelectAll}>
 
-                        </Pressable>
-                        {/* <Button onPress={handleApproveSelected}>Approve Selected</Button> */}
-                    </View>
+                                <Text style={styles.allText}>  Select All</Text>
+
+                            </Pressable>
+
+                            {/* <Button onPress={handleApproveSelected}>Approve Selected</Button> */}
+                        </View>
+
+                        {button && (
+                            <View style={styles.approveallbtn}>
+                                <Pressable onPress={handleApproveAll}>
+
+                                    <Text style={styles.approvealltxt}>Approve All</Text>
+                                </Pressable>
+                            </View>
+                        )}
+
+                    </HStack>
+
+
+
+
+                    {error && (
+                        <Text style={styles.errText}>**{error}**</Text>
+                    )}
                     {approval.map((leave, index) => {
                         const { month, day, year } = getDateParts(leave.LeaveDate);
                         const numericMonth = monthsOfYear.indexOf(month.substring(0, 3)); // Get numerical representation of month
@@ -183,48 +239,51 @@ const Notify = ({ navigation }) => {
 
 
                         return (
-                            <View key={index} style={styles.boxlist}>
-                                <HStack style={styles.hstack}>
-                                    <Pressable style={{ alignSelf: "center" }} onPress={() => handleToggleSelect(leave.id)}>
-                                        <Image source={leave.selected ? require("../../assets/Apply/select.png") : require("../../assets/Apply/unselect.png")} />
-                                    </Pressable>
-                                    <View style={[styles.calendar, index % 2 !== 0 ? { borderColor: "#7CB9E8" } : null]}>
-                                        <Text style={[styles.month, index % 2 !== 0 ? styles.evenMonth : null]}>{month}</Text>
-                                        <View>
-                                            <Text style={[styles.date, index % 2 !== 0 ? { color: "#7CB9E8" } : null]}>{day}</Text>
-                                            <Text style={[styles.year, index % 2 !== 0 ? { color: "#7CB9E8" } : null]}>{year}</Text>
-                                            <Text style={{ alignSelf: "center" }} >{dayOfWeek}</Text>
+                            <>
+
+                                <View key={index} style={styles.boxlist}>
+                                    <HStack style={styles.hstack}>
+                                        <Pressable style={{ alignSelf: "center" }} onPress={() => handleToggleSelect(leave.NricID, leave.LeaveDate)}>
+                                            <Image source={leave.selected ? require("../../assets/Apply/select.png") : require("../../assets/Apply/unselect.png")} />
+                                        </Pressable>
+                                        <View style={[styles.calendar, index % 2 !== 0 ? { borderColor: "#7CB9E8" } : null]}>
+                                            <Text style={[styles.month, index % 2 !== 0 ? styles.evenMonth : null]}>{month}</Text>
+                                            <View>
+                                                <Text style={[styles.date, index % 2 !== 0 ? { color: "#7CB9E8" } : null]}>{day}</Text>
+                                                <Text style={[styles.year, index % 2 !== 0 ? { color: "#7CB9E8" } : null]}>{year}</Text>
+                                                <Text style={{ alignSelf: "center" }} >{dayOfWeek}</Text>
+
+                                            </View>
 
                                         </View>
 
-                                    </View>
+                                        <VStack>
+                                            <View style={styles.empDetails} >
+                                                <Text style={styles.name}>{leave.EmpName} </Text>
+                                                <Text>({leave.LTypeName})</Text>
+                                                <Text style={styles.subText}>Role: {leave.Designation} </Text>
+                                                {/* <Text>Leave Type:  <Text style={styles.subLeaveType}>{leave.LTypeName}</Text>  </Text> */}
+                                                <Text>Reason: {leave.Reason} </Text>
+                                            </View>
+                                            <HStack style={{ justifyContent: "space-evenly" }}>
+                                                <Pressable onPress={() => leaveUpdate(leave.NricID, leave.LeaveDate, "approved")}>
+                                                    <View style={{ flexDirection: "row" }}>
+                                                        <Image source={require("../../assets/Apply/approval.png")} />
 
-                                    <VStack>
-                                        <View style={styles.empDetails} >
-                                            <Text style={styles.name}>{leave.EmpName} </Text>
-                                            <Text>({leave.LTypeName})</Text>
-                                            <Text style={styles.subText}>Role: {leave.Designation} </Text>
-                                            {/* <Text>Leave Type:  <Text style={styles.subLeaveType}>{leave.LTypeName}</Text>  </Text> */}
-                                            <Text>Reason: {leave.Reason} </Text>
-                                        </View>
-                                        <HStack style={{ justifyContent: "space-evenly" }}>
-                                            <Pressable onPress={() => leaveUpdate(leave.NricID, leave.LeaveDate, "approved")}>
-                                                <View style={{ flexDirection: "row" }}>
-                                                    <Image source={require("../../assets/Apply/approval.png")} />
-
-                                                    <Text style={styles.approvalbtn}>Accept</Text>
-                                                </View>
-                                            </Pressable>
-                                            <Pressable onPress={() => leaveUpdate(leave.NricID, leave.LeaveDate, "rejected")}>
-                                                <View style={{ flexDirection: "row" }}>
-                                                    <Image source={require("../../assets/Apply/cancel.png")} />
-                                                    <Text style={styles.approvalbtn}>Reject</Text>
-                                                </View>
-                                            </Pressable>
-                                        </HStack>
-                                    </VStack>
-                                </HStack>
-                            </View>
+                                                        <Text style={styles.approvalbtn}>Accept</Text>
+                                                    </View>
+                                                </Pressable>
+                                                <Pressable onPress={() => leaveUpdate(leave.NricID, leave.LeaveDate, "rejected")}>
+                                                    <View style={{ flexDirection: "row" }}>
+                                                        <Image source={require("../../assets/Apply/cancel.png")} />
+                                                        <Text style={styles.approvalbtn}>Reject</Text>
+                                                    </View>
+                                                </Pressable>
+                                            </HStack>
+                                        </VStack>
+                                    </HStack>
+                                </View>
+                            </>
                         );
                     })}
                     <Modal isOpen={modalVisible} onClose={toggleModal}>
@@ -335,7 +394,7 @@ const styles = StyleSheet.create({
     },
     buttonsContainer: {
         flexDirection: 'row',
-        margin: 10,
+        // margin: 10,
 
     },
     approvalbtn: {
@@ -362,6 +421,18 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "#000",
         padding: 15
+    },
+    errText: {
+        color: "red",
+        alignSelf: "center"
+    },
+    approveallbtn: {
+        backgroundColor: "green",
+        borderRadius: 5,
+        padding: 5
+    },
+    approvealltxt: {
+        color: "#fff"
     }
 });
 

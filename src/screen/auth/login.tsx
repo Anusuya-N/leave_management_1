@@ -46,17 +46,17 @@ const {email,setEmail,password,setPassword} = useAuth();
       if (response.ok) {
         const data = await response.json();
 
-        if (data.StatusResult === "success" ||"approval") {
-      
+        if (data.StatusResult === "success" || data.StatusResult === "approval") {
           navigation.navigate("Home");
           // navigation.reset({
           //   index: 0,
           //   routes: [{ name: "Home" }], // Replace 'Home' with your home screen route name
           // });
-        } else {
+      } else {
           console.log("Login unsuccessful");
           setShowAlert(true);
-        }
+      }
+      
       } else {
         console.error("API request failed with status:", response.status);
       }

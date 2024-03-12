@@ -136,7 +136,7 @@ const Notify = ({ navigation }) => {
                         </HStack>
                         <HStack>
 
-                            <Text style={styles.dot}>●</Text>
+                            <Text style={styles.dotTop}>●</Text>
 
 
                             <Text style={{ color: "#000" }}>Employees count on leave</Text>
@@ -169,7 +169,7 @@ const Notify = ({ navigation }) => {
                         }}
                     />
 
-                    <View style={styles.cardsContainer}>
+                    <View >
                         {blockedDates && blockedDates.length > 0 &&
                             Object.entries(
                                 blockedDates
@@ -197,13 +197,24 @@ const Notify = ({ navigation }) => {
                                     }, {})
                             )
                                 .map(([date, count], index) => (
-                                    <View key={index} style={styles.cardBox}>
-                                        <View style={styles.cardRound}>
-                                            <Text style={styles.roundText}>{date}</Text>
-                                        </View>
-                                        <Text style={styles.boxText}>
-                                            <Text style={styles.dot}>●</Text> Employee Count: {count}
-                                        </Text>
+                                    <View key={index} >
+                                        <HStack style={{ justifyContent: "center" }} >
+                                            <View>
+                                                <Text style={styles.dot}>●</Text>
+                                            </View>
+
+                                            <View style={styles.cardRound}>
+
+
+                                                <Text style={styles.roundText}>
+
+
+                                                    {date}</Text>
+                                            </View>
+                                            <Text style={styles.boxText}>
+                                                Employee Count: {count}
+                                            </Text>
+                                        </HStack>
                                     </View>
                                 ))}
                     </View>
@@ -371,7 +382,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: "#054582",
         backgroundColor: "#054582",
-        marginVertical: 5,
+        // marginVertical: 5,
         borderRadius: 100,
         height: 50,
         width: 50,
@@ -386,7 +397,14 @@ const styles = StyleSheet.create({
     dot: {
         fontWeight: 'bold',
         color: '#054582',
-        //  marginRight: 5, 
+        margin: 30
+
+
+    },
+    dotTop:{
+        fontWeight: 'bold',
+        color: '#054582',
+       
     },
     dotRed: {
         fontWeight: 'bold',
@@ -395,8 +413,17 @@ const styles = StyleSheet.create({
     },
 
     boxText: {
-        alignSelf: "center",
+
         color: "#000",
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#eee",
+        backgroundColor: "#fff",
+        margin: 25,
+        padding: 6,
+        width: 200,
+
+
 
 
 

@@ -6,10 +6,10 @@ import Header from '../layout/header';
 import { Calendar } from 'react-native-calendars';
 import { useAuth } from '../context/AuthContext';
 const Home = ({ navigation }: any) => {
-  const { email, leaveLoad, userType,responseData,firstEmployee } = useAuth()
+  const { email, leaveLoad, userType, responseData, firstEmployee } = useAuth()
   console.log('userType: ', userType);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  
+
   const toggleDrawer = () => {
     setIsDrawerVisible(!isDrawerVisible);
   };
@@ -18,10 +18,11 @@ const Home = ({ navigation }: any) => {
     setIsDrawerVisible(false);
   };
 
- 
+
   const [showAll, setShowAll] = useState(false);
 
   const displayedAlerts = showAll ? responseData && responseData : responseData && responseData.slice(0, 3);
+  console.log('displayedAlerts: ', displayedAlerts);
 
   const toggleShowAll = () => {
     setShowAll(!showAll);
@@ -188,7 +189,16 @@ const Home = ({ navigation }: any) => {
                   <Text style={styles.bulletPoint}>●
 
                     <Text style={styles.homeContent}>
-                      Your {alert.nDays} day leave <Text style={{ color: "green" }}>({alert.LTypeName} - {alert.LeaveCode})</Text>  from {alert.LeaveDate.split(' ')[0]} to {alert.LeaveDate.split(' ')[0]} has been {alert.Status}
+                      Your {alert.nDays} day leave <Text style={{ color: "gray" }}>({alert.LTypeName} - {alert.LeaveCode})</Text>  from {alert.LeaveDate.split(' ')[0]} to {alert.LeaveDate.split(' ')[0]} 
+                      {alert.Status === "approved" ? (
+                        <Text style={{ color: "green" }}> has been approved</Text>
+                      ) : alert.Status === "rejected" ? (
+                        <Text style={{ color: "red" }}>has been rejected</Text>
+                      ) : alert.Status === "Cancel Pending" ? (
+                        <Text style={{ color: "red" }}> has been canceled</Text>
+                      ) : (
+                        <Text style={{ color: "#ff6700" }}>  is {alert.Status}</Text>
+                      )}
                       {/* <Text>  </Text>
                       <Text style={{ color: "#fff", backgroundColor: "gray" }}>  {alert.Approve1} </Text> */}
                     </Text>
