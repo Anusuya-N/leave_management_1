@@ -184,28 +184,40 @@ const Home = ({ navigation }: any) => {
 
               )} */}
               <Text style={styles.homeHea}>Alerts </Text>
-              {displayedAlerts?.map((alert) => (
-                <>
-                  <Text style={styles.bulletPoint}>●
 
-                    <Text style={styles.homeContent}>
-                      Your {alert.nDays} day leave <Text style={{ color: "gray" }}>({alert.LTypeName} - {alert.LeaveCode})</Text>  from {alert.LeaveDate.split(' ')[0]} to {alert.LeaveDate.split(' ')[0]} 
+              <View style={styles.header}>
+                <Text style={styles.headerText}>Date</Text>
+                <Text style={styles.headerText}>Days</Text>
+                <Text style={styles.headerText}>Type</Text>
+                <Text style={styles.headerText}>Status</Text>
+              </View>
+              {displayedAlerts?.map((alert, index) => {
+                const dateParts = alert.LeaveDate.split(' ')[0].split('/');
+                const month = dateParts[0].padStart(2, '0');
+                const day = dateParts[1].padStart(2, '0');
+                const year = dateParts[2];
+                const formattedDate = `${day}/${month}/${year}`;
+
+                return (
+                  <View style={styles.row} key={index}>
+                    <Text style={styles.cell}>{formattedDate}</Text>
+                    <Text style={[styles.date, { color: "#000" }]}>{alert.nDays}</Text>
+                    <Text style={styles.cells}>{alert.LTypeName} ({alert.LeaveCode})</Text>
+                    <Text style={styles.cells}>
                       {alert.Status === "approved" ? (
-                        <Text style={{ color: "green" }}> has been approved</Text>
+                        <Text style={{ color: "green" }}>Approved</Text>
                       ) : alert.Status === "rejected" ? (
-                        <Text style={{ color: "red" }}>has been rejected</Text>
+                        <Text style={{ color: "red" }}>Rejected</Text>
                       ) : alert.Status === "Cancel Pending" ? (
-                        <Text style={{ color: "red" }}> has been canceled</Text>
+                        <Text style={{ color: "red" }}>Canceled</Text>
                       ) : (
-                        <Text style={{ color: "#ff6700" }}>  is {alert.Status}</Text>
+                        <Text style={{ color: "#ff6700" }}>Pending</Text>
                       )}
-                      {/* <Text>  </Text>
-                      <Text style={{ color: "#fff", backgroundColor: "gray" }}>  {alert.Approve1} </Text> */}
                     </Text>
-                  </Text>
+                  </View>
+                );
+              })}
 
-                </>
-              ))}
             </View>
             {responseData && responseData.length > 3 && (
               <TouchableOpacity onPress={toggleShowAll}>
@@ -244,12 +256,6 @@ const styles = StyleSheet.create({
   },
   dashImg: {
 
-    alignSelf: "center"
-  },
-  headerText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: "#ffc40c",
     alignSelf: "center"
   },
   leaveDetail: {
@@ -319,6 +325,50 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     textDecorationLine: 'underline',
     marginTop: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  dateContainer: {
+    flexDirection: 'column',
+    alignItems: 'center', // Center align text within the container
+    paddingRight: 12,
+  },
+  date: {
+    fontWeight: 'bold',
+    color: 'gray',
+  },
+
+  cell: {
+    flex: 1,
+    color: 'gray',
+
+  },
+  cells: {
+    flex: 1,
+    color: 'gray',
+    textAlign: "center"
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    // borderBottomWidth: 1,
+    paddingBottom: 5,
+    marginBottom: 10,
+    marginTop: 10,
+    width: 390,
+
+
+  },
+  headerText: {
+    fontWeight: 'bold',
+    flex: 1,
+    backgroundColor: "#eee",
+    height: 30,
+
+
   },
 });
 

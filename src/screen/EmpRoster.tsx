@@ -12,6 +12,7 @@ const Notify = ({ navigation }) => {
 
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [calendar, setCalendar] = useState(false);
     const [selectedDay, setSelectedDay] = useState('');
 
     const [roaster, setRoaster] = useState([]);
@@ -44,16 +45,22 @@ const Notify = ({ navigation }) => {
                     setRoaster(data.roaster);
                     setBlockedDates(data.roaster);
                 } else {
+                    setCalendar(true)
+                    setRoaster([]);
+                    setBlockedDates([]);
                     console.error('Error fetching user status');
                 }
             } catch (error) {
+                setCalendar(true)
+                setRoaster([]);
+                setBlockedDates([]);
                 console.error('Error fetching data:', error);
             }
         };
 
         fetchData();
     }, [userStatus]);
-
+    console.log('Blocked dates:', blockedDates);
     const addEvent = (day) => {
         setSelectedDay(day.dateString);
         setIsModalVisible(true);
@@ -63,6 +70,7 @@ const Notify = ({ navigation }) => {
         setIsModalVisible(false);
     };
 
+
     const markedDatesObject = Object.fromEntries(
         blockedDates.map((item) => {
             const dateParts = item.LeaveDate.split(' ')[0].split('/');
@@ -70,8 +78,6 @@ const Notify = ({ navigation }) => {
             return [formattedDate, { marked: true, dotColor: 'red' }];
         })
     );
-
-
     const eventsCountByDate = blockedDates.reduce((acc, curr) => {
         acc[curr.date] = (acc[curr.date] || 0) + 1;
         return acc;
@@ -143,138 +149,153 @@ const Notify = ({ navigation }) => {
                         </HStack>
                     </HStack>
 
-                    <Calendar
-                        onMonthChange={handleMonthChange}
-                        markedDates={markedDatesObject}
-                        onDayPress={addEvent}
-                        markingType={'period'}
-                        renderDay={(day, markedDates) => {
-                            const date = day.dateString;
-                            const marked = markedDates[date] && markedDates[date].selected;
-                            const eventsCount = eventsCountByDate[date] || 0;
-                            return (
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        if (marked) {
-                                            setSelectedDay(date);
-                                            setIsModalVisible(true);
-                                        }
-                                    }}
-                                    style={[styles.dayContainer, marked && { backgroundColor: 'red' }]}>
-                                    <Text style={[styles.dateText, marked && { color: 'black' }]}>
-                                        {day.day}
-                                    </Text>
-                                </TouchableOpacity>
-                            );
-                        }}
-                    />
+                    {calendar ? (
+                        <>
 
-                    <View >
-                        {blockedDates && blockedDates.length > 0 &&
-                            Object.entries(
-                                blockedDates
-                                    .filter(item => {
-                                        const leaveDateParts = item.LeaveDate.split(' ')[0].split('/');
-                                        const month = parseInt(leaveDateParts[0], 10); // Extract month from LeaveDate
-                                        return month === calendarMonth; // Filter by the calendar month
-                                    })
-                                    .reduce((accumulator, item) => {
-                                        const leaveDateParts = item.LeaveDate.split(' ')[0].split('/');
-                                        const monthAbbreviation = months[parseInt(leaveDateParts[0], 10) - 1]; // Get month abbreviation
-                                        const formattedDay = leaveDateParts[1].padStart(2, '0'); // Get formatted day
-
-                                        const formattedDate = `${monthAbbreviation} ${formattedDay}`;
-
-                                        // If the formatted date is already in the accumulator, increment the count
-                                        if (accumulator[formattedDate]) {
-                                            accumulator[formattedDate]++;
-                                        } else {
-                                            // If not, initialize the count to 1
-                                            accumulator[formattedDate] = 1;
-                                        }
-
-                                        return accumulator;
-                                    }, {})
-                            )
-                                .map(([date, count], index) => (
-                                    <View key={index} >
-                                        <HStack style={{ justifyContent: "center" }} >
-                                            <View>
-                                                <Text style={styles.dot}>●</Text>
-                                            </View>
-
-                                            <View style={styles.cardRound}>
-
-
-                                                <Text style={styles.roundText}>
-
-
-                                                    {date}</Text>
-                                            </View>
-                                            <Text style={styles.boxText}>
-                                                Employee Count: {count}
+                            <Text style={styles.err}>No dates Blocked</Text>
+                        </>
+                    ) :
+                        <>
+                            <Calendar
+                                onMonthChange={handleMonthChange}
+                                markedDates={markedDatesObject}
+                                onDayPress={addEvent}
+                                markingType={'period'}
+                                renderDay={(day, markedDates) => {
+                                    const date = day.dateString;
+                                    const marked = markedDates[date] && markedDates[date].selected;
+                                    const eventsCount = eventsCountByDate[date] || 0;
+                                    return (
+                                        <TouchableOpacity
+                                            onPress={() => {
+                                                if (marked) {
+                                                    setSelectedDay(date);
+                                                    setIsModalVisible(true);
+                                                }
+                                            }}
+                                            style={[styles.dayContainer, marked && { backgroundColor: 'red' }]}>
+                                            <Text style={[styles.dateText, marked && { color: 'black' }]}>
+                                                {day.day}
                                             </Text>
-                                        </HStack>
-                                    </View>
-                                ))}
-                    </View>
-
-
-
-
-
-                    <Modal isOpen={isModalVisible} onClose={closeModal}>
-                        <Modal.Content>
-                            <Modal.CloseButton />
-                            <Modal.Header >
-
-                                <Text style={styles.modHea}>Event</Text>
-                                <Text style={styles.submodHea}> {selectedDay}</Text>
-                            </Modal.Header>
-                            <Modal.Body style={{ alignItems: "center" }}>
-                                {blockedDates && blockedDates.length > 0 ? (
-                                    <>
-                                        {blockedDates
+                                        </TouchableOpacity>
+                                    );
+                                }}
+                            />
+                            <View>
+                                {blockedDates && blockedDates.length > 0 &&
+                                    Object.entries(
+                                        blockedDates
                                             .filter(item => {
                                                 const leaveDateParts = item.LeaveDate.split(' ')[0].split('/');
-                                                const formattedLeaveDate = `${leaveDateParts[2]}-${leaveDateParts[0].padStart(2, '0')}-${leaveDateParts[1].padStart(2, '0')}`;
-                                                const formattedSelectedDay = selectedDay.split(' ')[0]; // Assuming selectedDay is in the format "YYYY-MM-DD"
-                                                return formattedLeaveDate === formattedSelectedDay;
+                                                const month = parseInt(leaveDateParts[0], 10); // Extract month from LeaveDate
+                                                return month === calendarMonth; // Filter by the calendar month
                                             })
-                                            .map((event, index) => (
-                                                <View style={styles.leaveDetails} key={`${event.LeaveDate}-${index}`}>
-                                                    {/* Display the Employee Name and Leave Code */}
-                                                    <HStack space={3}>
-                                                        {/* Display an image based on the leave status */}
-                                                        {event.Status === 'pending' ? (
-                                                            <Image source={require("../../assets/Apply/cal.png")} /> // Pending image
-                                                        ) : (
-                                                            <Image source={require("../../assets/Apply/green.png")} /> // Approved image
-                                                        )}
-                                                        <Text style={styles.leaveText}>{event.EmpName} ({event.LeaveCode})</Text>
-                                                    </HStack>
-                                                </View>
-                                            ))
-                                        }
-                                        {blockedDates
-                                            .filter(item => {
+                                            .reduce((accumulator, item) => {
                                                 const leaveDateParts = item.LeaveDate.split(' ')[0].split('/');
-                                                const formattedLeaveDate = `${leaveDateParts[2]}-${leaveDateParts[0].padStart(2, '0')}-${leaveDateParts[1].padStart(2, '0')}`;
-                                                const formattedSelectedDay = selectedDay.split(' ')[0]; // Assuming selectedDay is in the format "YYYY-MM-DD"
-                                                return formattedLeaveDate === formattedSelectedDay;
-                                            })
-                                            .length === 0 && <Text style={styles.leaveText}>No leaves are blocked</Text>
-                                        }
-                                    </>
-                                ) : (
-                                    <Text style={styles.leaveText}>No leaves are blocked</Text>
-                                )}
-                            </Modal.Body>
+                                                const monthAbbreviation = months[parseInt(leaveDateParts[0], 10) - 1]; // Get month abbreviation
+                                                const formattedDay = leaveDateParts[1].padStart(2, '0'); // Get formatted day
+
+                                                const formattedDate = `${monthAbbreviation} ${formattedDay}`;
+
+                                                // If the formatted date is already in the accumulator, increment the count
+                                                if (accumulator[formattedDate]) {
+                                                    accumulator[formattedDate]++;
+                                                } else {
+                                                    // If not, initialize the count to 1
+                                                    accumulator[formattedDate] = 1;
+                                                }
+
+                                                return accumulator;
+                                            }, {})
+                                    ).sort(([date1], [date2]) => {
+                                        // Sorting dates in ascending order
+                                        const [month1, day1] = date1.split(' ');
+                                        const [month2, day2] = date2.split(' ');
+                                        return months.indexOf(month1) - months.indexOf(month2) || parseInt(day1) - parseInt(day2);
+                                    })
+                                        .map(([date, count], index) => (
+                                            <View key={index}>
+                                                <HStack style={{ justifyContent: "center" }}>
+                                                    <View>
+                                                        <Text style={styles.dot}>●</Text>
+                                                    </View>
+
+                                                    <View style={styles.cardRound}>
+                                                        <Text style={styles.roundText}>
+                                                            {date}
+                                                        </Text>
+                                                    </View>
+                                                    <Text style={styles.boxText}>
+                                                        Employee Count: {count}
+                                                    </Text>
+                                                </HStack>
+                                            </View>
+                                        ))}
+                            </View>
 
 
 
-                        </Modal.Content>
-                    </Modal>
+
+
+
+                            <Modal isOpen={isModalVisible} onClose={closeModal}>
+                                <Modal.Content>
+                                    <Modal.CloseButton />
+                                    <Modal.Header >
+
+                                        <Text style={styles.modHea}>Event</Text>
+                                        <Text style={styles.submodHea}> {selectedDay}</Text>
+                                    </Modal.Header>
+                                    <Modal.Body style={{ alignItems: "center" }}>
+                                        {blockedDates && blockedDates.length > 0 ? (
+                                            <>
+                                                {blockedDates
+                                                    .filter(item => {
+                                                        const leaveDateParts = item.LeaveDate.split(' ')[0].split('/');
+                                                        const formattedLeaveDate = `${leaveDateParts[2]}-${leaveDateParts[0].padStart(2, '0')}-${leaveDateParts[1].padStart(2, '0')}`;
+                                                        const formattedSelectedDay = selectedDay.split(' ')[0]; // Assuming selectedDay is in the format "YYYY-MM-DD"
+                                                        return formattedLeaveDate === formattedSelectedDay;
+                                                    })
+                                                    .map((event, index) => (
+                                                        <View style={styles.leaveDetails} key={`${event.LeaveDate}-${index}`}>
+                                                            {/* Display the Employee Name and Leave Code */}
+                                                            <HStack space={3}>
+                                                                {/* Display an image based on the leave status */}
+                                                                {event.Status === 'pending' ? (
+                                                                    <Image source={require("../../assets/Apply/cal.png")} /> // Pending image
+                                                                ) : (
+                                                                    <Image source={require("../../assets/Apply/green.png")} /> // Approved image
+                                                                )}
+                                                                <Text style={styles.leaveText}>{event.EmpName} ({event.LeaveCode})</Text>
+                                                            </HStack>
+                                                        </View>
+                                                    ))
+                                                }
+                                                {blockedDates
+                                                    .filter(item => {
+                                                        const leaveDateParts = item.LeaveDate.split(' ')[0].split('/');
+                                                        const formattedLeaveDate = `${leaveDateParts[2]}-${leaveDateParts[0].padStart(2, '0')}-${leaveDateParts[1].padStart(2, '0')}`;
+                                                        const formattedSelectedDay = selectedDay.split(' ')[0]; // Assuming selectedDay is in the format "YYYY-MM-DD"
+                                                        return formattedLeaveDate === formattedSelectedDay;
+                                                    })
+                                                    .length === 0 && <Text style={styles.leaveText}>No leaves are blocked</Text>
+                                                }
+                                            </>
+                                        ) : (
+                                            <Text style={styles.leaveText}>No leaves are blocked</Text>
+                                        )}
+                                    </Modal.Body>
+
+
+
+                                </Modal.Content>
+                            </Modal>
+                        </>
+                    }
+
+
+
+
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
@@ -401,10 +422,10 @@ const styles = StyleSheet.create({
 
 
     },
-    dotTop:{
+    dotTop: {
         fontWeight: 'bold',
         color: '#054582',
-       
+
     },
     dotRed: {
         fontWeight: 'bold',
@@ -443,6 +464,13 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         // alignSelf:"center"
     },
+    err: {
+        fontWeight: "bold",
+        alignSelf: "center",
+        color: "red",
+        marginTop: 5,
+
+    }
 
 });
 
